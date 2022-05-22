@@ -418,6 +418,42 @@ def permute(a_list):
     from random import sample
     return sample(a_list, k=len(tuple(a_list)))
 
+def countdown(size=None, offset=0, delay=0, seconds=None):
+    """
+        Returns a function
+        That function will return False until it has been called `size` times
+        Then it auto resets/repeats
+    """
+    if seconds:
+        def _countdown():
+                
+            now = time.time()
+            # init
+            if _countdown.marker is None:
+                _countdown.marker = now
+            # enough time has passed
+            if _countdown.marker + seconds <= now:
+                _countdown.marker = now
+                return True
+            else:
+                return False
+        _countdown.marker = None
+        return _countdown
+    else:
+        remaining = size
+        def _countdown():
+            _countdown.remaining -= 1
+            if _countdown.remaining + offset <= 0:
+                # restart
+                _countdown.remaining = size - offset
+                return True
+            else:
+                return False
+        _countdown.remaining = size + delay
+        _countdown.size = size
+        return _countdown
+
+
 # 
 # print that can be indented or temporarily disabled
 # 
