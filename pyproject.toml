@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "your_package_name"
+name = "blissful-basics"
 version = "0.0.1"
-description = "YOUR_DESCRIPTION"
+description = "Tools I need in every python project"
 authors=[]
 
 [tool.extra]
-author='YOUR_NAME_14057'
-author_email='YOUR_EMAIL'
-url='YOUR_GIT_REPO_URL'
+author='Jeff Hykin'
+author_email='jeff.hykin@gmail.com'
+url='https://github.com/jeff-hykin/blissful_basics.git'
 license = "MIT"
 
 [tool.poetry.dependencies]

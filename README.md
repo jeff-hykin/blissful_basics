@@ -1,32 +1,50 @@
 # What is this?
 
-A template for python packages
-
-# How do I fill out this template?
-
-1. Change the `pyproject.toml` file (package name, version, etc)
-2. Change the `./main/your_package_name` folder
-3. Edit the `./main/your_package_name/__init__.py` file, and change the `from your_package_name.main import *`
-4. Open the `./main/setup.py` and edit the `install_requires=` part to include dependencies
-5. Edit this readme (it will be the front page of the package)
-6. Edit the `./main/your_package_name/main.py` to have your library in it
-7. Run `project local_install` to install what you just made
-8. Run `project publish` to release your package
-
-
-## (Readme template below)
-
-# What is this?
-
-(Your answer here)
+The tools I find myself copying and pasting between every python project.
 
 # How do I use this?
 
-`pip install your_package_name`
+`pip install blissful_basics`
 
 
 ```python
-from your_package_name import something
+from blissful_basics import print, flatten, to_pure, stringify, stats, product, large_pickle_save, large_pickle_load, FS, Object
 
-# example of how to use your package here
+# how you'd expect it
+with print.indent:
+    print("howdy1")
+    with print.indent:
+        print("howdy2")
+    print("howdy3")
+
+# recursively indent's function calls
+@print.indent.function 
+def my_func():
+    print("this will be indented")
+
+import numpy
+import torch
+
+to_pure(numpy.array([1,2,3,4,5]))   # [1,2,3,4,5]
+to_pure(torch.tensor([1,2,3,4,5]))  # [1,2,3,4,5] # even if its on a GPU device
+
+stats([1,2,3,4,5])
+# Object(
+#     max = 5,
+#     min = 1,
+#     range = 4,
+#     count = 5,
+#     sum = 15,
+#     average = 3.0,
+#     stdev = 1.5811388300841898,
+#     median = 3,
+#     q1 = 1.5,
+#     q3 = 4.5,
+#     normalized = (0.0, 0.25, 0.5, 0.75, 1.0),
+# )
+
+a = Object(thing=10)
+a.thing # 10
+a.thing = 99
+a.thing # 99
 ```
