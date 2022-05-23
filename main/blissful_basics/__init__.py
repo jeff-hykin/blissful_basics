@@ -3,6 +3,9 @@ import file_system_py as FS
 from time import time as now
 from random import shuffle
 
+def unix_time():
+    return int(now()/1000)
+
 class Object: # just an empty object for assigning attributes of
     def __init__(self, **kwargs):
         for each_key, each_value in kwargs.items():
