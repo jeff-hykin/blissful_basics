@@ -1,5 +1,7 @@
 import json_fix
 import file_system_py as FS
+from time import time as now
+from random import shuffle
 
 class Object: # just an empty object for assigning attributes of
     def __init__(self, **kwargs):
