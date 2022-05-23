@@ -477,7 +477,7 @@ def print(*args, to_string=False, **kwargs): # print(value, ..., sep=' ', end='\
         return
         
     if hasattr(print, "indent"):
-        if print.indent > 0:
+        if print.indent.size > 0:
             indent = print.indent.string*print.indent.size
             # dump to string
             output_str = print(*args, **{ **kwargs, "to_string":True})
