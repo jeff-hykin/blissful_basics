@@ -36,12 +36,15 @@ def flatten(value):
     flattener = lambda *m: (i for n in m for i in (flattener(*n) if is_generator_like(n) else (n,)))
     return list(flattener(value))
 
-def flatten_once(items):
+def iteratively_flatten_once(items):
     for each in items:
         if is_generator_like(each):
             yield from each
         else:
             yield each
+
+def flatten_once(items):
+    return list(iteratively_flatten_once(items))
 
 def product(iterable):
     from functools import reduce
