@@ -12,13 +12,13 @@ class Object: # just an empty object for assigning attributes of
             setattr(self, each_key, each_value)
     
     def __repr__(self):
-        entries = ""
-        for each_key, each_value in self.__dict__.items():
-            entries += f"    {each_key} = {repr(each_value)},\n"
-        if len(entries) == 0:
+        if len(self.__dict__) == 0:
             return 'Object()'
         else:
-            return f"""Object(\n{entries})"""
+            entries = "Object(\n"
+            for each_key, each_value in self.__dict__.items():
+                entries += "    "+str(each_key)+" = "+repr(each_value)+",\n"
+            return entries+")"
 
 def is_iterable(thing):
     # https://stackoverflow.com/questions/1952464/in-python-how-do-i-determine-if-an-object-is-iterable
@@ -422,6 +422,14 @@ def large_pickle_save(variable, file_path):
 def permute(a_list):
     from random import sample
     return sample(a_list, k=len(tuple(a_list)))
+
+def randomly_pick_from(a_list):
+    from random import randint
+    index = randint(0, len(a_list)-1)
+    return a_list[index]
+
+def integers(*,start,end_before,step=1):
+    return list(range(start, end_before, step))
 
 def countdown(size=None, offset=0, delay=0, seconds=None):
     """
