@@ -419,6 +419,12 @@ def large_pickle_save(variable, file_path):
         for idx in range(0, len(bytes_out), max_bytes):
             f_out.write(bytes_out[idx:idx+max_bytes])
 
+def shuffled(a_list):
+    from random import shuffle
+    new_list = list(a_list)
+    shuffle(new_list)
+    return new_list
+
 def permute(a_list):
     from random import sample
     return sample(a_list, k=len(tuple(a_list)))
