@@ -611,14 +611,14 @@ import json_fix # import this before the JSON.dumps gets called
 import json
 
 # fallback method
-json.override_table[lambda obj: True ] = lambda obj: to_pure(obj)
+json.fallback_table[lambda obj: True ] = lambda obj: to_pure(obj)
 
 # 
 # pandas
 # 
 try:
     import pandas as pd
-    json.override_table[lambda obj: isinstance(obj, pd.DataFrame)] = lambda obj: json.loads(obj.to_json())
+    json.fallback_table[lambda obj: isinstance(obj, pd.DataFrame)] = lambda obj: json.loads(obj.to_json())
 except Exception as error:
     pass
 
