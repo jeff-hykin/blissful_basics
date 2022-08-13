@@ -497,7 +497,10 @@ def countdown(size=None, offset=0, delay=0, seconds=None):
 # print that can be indented or temporarily disabled
 # 
 real_print = print
-def print(*args, to_string=False, **kwargs): # print(value, ..., sep=' ', end='\n', file=sys.stdout, flush=False)
+def print(*args, to_string=False, disable=False, **kwargs): # print(value, ..., sep=' ', end='\n', file=sys.stdout, flush=False)
+    prev_end = print.prev_end
+    print.prev_end = kwargs.get('end', '\n') or ''
+    
     from io import StringIO
     if to_string:
         string_stream = StringIO()
@@ -507,7 +510,7 @@ def print(*args, to_string=False, **kwargs): # print(value, ..., sep=' ', end='\
         string_stream.close()
         return output_str
         
-    if hasattr(print, "disable") and print.disable.always:
+    if disable or hasattr(print, "disable") and print.disable.always:
         return
         
     if hasattr(print, "indent"):
@@ -515,12 +518,28 @@ def print(*args, to_string=False, **kwargs): # print(value, ..., sep=' ', end='\
             indent = print.indent.string*print.indent.size
             # dump to string
             output_str = print(*args, **{ **kwargs, "to_string":True})
-            # indent it
-            output_str = indent+output_str.replace("\n", "\n"+indent)[0:-len(indent)]
+            # starting indent depending on previous ending
+            if len(prev_end) > 0 and prev_end[-1] in ('\n', '\r'):
+                output_str += indent
+            # indent any contained newlines 
+            output_str = output_str.replace("\n", "\n"+indent)[0:-len(indent)]
             # print it
             return real_print(output_str, **{ "flush": print.flush.always, **kwargs, "end":""}) 
     
     return real_print(*args, **{ "flush": print.flush.always, **kwargs})
+print.prev_end = '\n'
+
+class WithNothing(object):
+    def __init__(*args, **kwargs):
+        pass
+    
+    def __enter__(self):
+        return None
+    
+    def __exit__(self, _, error, traceback):
+        if error is not None:
+            raise error
+with_nothing = WithNothing()
 
 class _Indent(object):
     """
@@ -560,13 +579,20 @@ class _Indent(object):
             return output
         return wrapper
     
-    def block(self, *args):
+    def block(self, *args, disable=False):
         """
-        with block("staring iterations"):
-            print("this is indented")
+        Examples:
+            with block("staring iterations"):
+                print("this is indented")
+            
+            with block("staring iterations", disable=True):
+                print("this is indented")
         """
-        print(*args)
-        return print.indent
+        print(*args, disable=disable)
+        if not disable:
+            return print.indent
+        else:
+            return with_nothing
     
     def function_block(self,function_being_wrapped):
         """
@@ -584,7 +610,49 @@ class _Indent(object):
             print.indent.size = original_value
             return output
         return wrapper
-    
+
+def _print_function(create_message=None, *, disable=False):
+    """
+    Examples:
+        @print.function()
+        def some_function(arg1):
+            print("this is indented, and has the name of the function above it")
+        
+        @print.function(disable=True)
+        def some_function(arg1):
+            print("this will print, but wont be intended")
+        
+        @print.function(disable=lambda : True)
+        def some_function(arg1):
+            print("this will print, but wont be intended")
+        
+        @print.function(lambda func, arg1: f"{func.__name__}({arg1})")
+        def some_function(arg1):
+            print("this is indented, and above is func name and arg")
+        
+        @print.function(lambda func, *args: f"{func.__name__}{args}")
+        def some_function(arg1, arg2, arg3):
+            print("this is indented, and above is func name and all the args")
+    """
+    disable_check = disable if callable(disable) else lambda : disable
+    def decorator_name(function_being_wrapped):
+        def wrapper(*args, **kwargs):
+            disabled = disable_check()
+            if disabled:
+                return function_being_wrapped(*args, **kwargs)
+            else:
+                original_value = print.indent.size
+                if not create_message:
+                    if hasattr(function_being_wrapped, "__name__"):
+                        print(f"{function_being_wrapped.__name__}(...)")
+                else:
+                    print(create_message(function_being_wrapped, *args, **kwargs))
+                print.indent.size += 1
+                output = function_being_wrapped(*args, **kwargs)
+                print.indent.size = original_value
+        return wrapper
+
+print.function = _print_function    
 print.indent  = _Indent()
 print.flush   = Object()
 print.disable = Object()
