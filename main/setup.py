@@ -25,9 +25,7 @@ setuptools.setup(
     author_email=package_info["author_email"],
     license=package_info["license"],
     packages=[package_info["name"]],
-    install_requires=[
-        'json-fix >= 0.3.0',
-    ],
+    install_requires=[],
     classifiers=[
         # examples:
         # 'Development Status :: 5 - Production/Stable',

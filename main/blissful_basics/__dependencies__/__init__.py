@@ -90,5 +90,12 @@ for each in dependency_underscore_names:
 
 # 
 # do the actual importing
-# 
-exec("\n".join(import_strings))
+#
+import_string = "\n".join(import_strings)
+try:
+    exec(import_string)
+except Exception as error:
+    print(error)
+    indented = import_string.replace('\n', '\n    ')
+    print(f"Issue while trying to run the following:\n    {indented}")
+    raise error

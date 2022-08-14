@@ -1,5 +1,6 @@
-import json_fix
-from blissful_basics.__dependencies__ import file_system_py as FS
+from .__dependencies__ import json_fix
+from .__dependencies__ import file_system_py as FS
+
 from time import time as now
 from random import shuffle
 
@@ -812,5 +813,3 @@ if True:
                 except Exception as error:
                     pass
         return numpy.array(to_pure(value))
-
-
