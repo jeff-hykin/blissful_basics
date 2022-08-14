@@ -347,6 +347,25 @@ if True:
         def decorator(function_being_wrapped):
             return function_being_wrapped
         return decorator
+    
+    def is_used_by(*args, **kwargs):
+        """
+            Summary:
+                A way to know why a method function exists, and know if it can be renamed
+                (A way of mapping out dependencies)
+            
+            Example:
+                import custom_json_thing
+                
+                class Thing:
+                    @is_used_by(custom_json_thing)
+                    def to_json(self):
+                        return "something"
+                        
+        """
+        def decorator(function_being_wrapped):
+            return function_being_wrapped
+        return decorator
 
 #
 # iterative helpers
