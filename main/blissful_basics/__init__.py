@@ -329,7 +329,6 @@ if True:
             return debug_string
     stringify.onelineify_threshold = 50
     
-    
     def is_required_by(*args, **kwargs):
         """
             Summary:
@@ -347,6 +346,7 @@ if True:
         """
         def decorator(function_being_wrapped):
             return function_being_wrapped
+        return decorator
 
 #
 # iterative helpers
