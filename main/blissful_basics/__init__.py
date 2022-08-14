@@ -1,5 +1,5 @@
 import json_fix
-import file_system_py as FS
+from blissful_basics.__dependencies__ import file_system_py as FS
 from time import time as now
 from random import shuffle
 

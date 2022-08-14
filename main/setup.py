@@ -26,7 +26,6 @@ setuptools.setup(
     license=package_info["license"],
     packages=[package_info["name"]],
     install_requires=[
-        'file-system-py >= 0.0.7',
         'json-fix >= 0.3.0',
     ],
     classifiers=[
