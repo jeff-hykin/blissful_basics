@@ -843,15 +843,11 @@ if True:
             with open(file_path, 'wb') as f_out:
                 for idx in range(0, len(bytes_out), max_bytes):
                     f_out.write(bytes_out[idx:idx+max_bytes])
-
-
+    
     # 
+    # json
     # 
-    # json fixes
-    # 
-    #
     if True: 
-        import json_fix # import this before the JSON.dumps gets called
         import json
 
         # fallback method
@@ -865,6 +861,167 @@ if True:
             json.fallback_table[lambda obj: isinstance(obj, pd.DataFrame)] = lambda obj: json.loads(obj.to_json())
         except ImportError as error:
             pass
+        
+        class Json:
+            @staticmethod
+            def read(path):
+                with open(path, 'r') as in_file:
+                    return json.load(in_file)
+            
+            @staticmethod
+            def write(data, path):
+                with open(path, 'w') as outfile:
+                    json.dump(data, outfile)
+    # 
+    # csv
+    # 
+    if True:
+        class Csv:
+            # reads .csv, .tsv, etc
+            @staticmethod
+            def read(path, *, seperator=",", use_headers=None, first_row_is_headers=False, skip_empty_lines=True, comment_symbol=None):
+                import json
+                
+                comments = []
+                rows     = []
+                headers  = []
+                is_first_data_row = True
+                
+                with open(path,'r') as file:
+                    for each_line in file.readlines():
+                        # remove all weird whitespace as a precaution
+                        each_line = each_line.replace("\r", "").replace("\n", "")
+                        
+                        # 
+                        # comments
+                        # 
+                        if isinstance(comment_symbol, str):
+                            if each_line.startswith(comment_symbol):
+                                comments.append(each_line[1:])
+                                continue
+                        
+                        # 
+                        # empty lines
+                        # 
+                        if skip_empty_lines and len(each_line.strip()) == 0:
+                            continue
+                        
+                        # 
+                        # cell data
+                        #
+                        cells = each_line.split(seperator)
+                        cells_with_types = []
+                        skip_to = 0
+                        for index, each_cell in enumerate(cells):
+                            if index < skip_to:
+                                continue
+                            
+                            stripped = each_cell.strip()
+                            if len(stripped) == 0:
+                                cells_with_types.append(None)
+                            else:
+                                first_char = stripped[0]
+                                if not (first_char == '"' or first_char == '[' or first_char == '{'):
+                                    # this converts scientific notation to floats, ints with whitespace to ints, null to None, etc
+                                    try: cells_with_types.append(json.loads(each_cell))
+                                    # if its not valid JSON, just treat it as a string
+                                    except Exception as error:
+                                        cells_with_types.append(each_cell)
+                                else: # if first_char == '"' or first_char == '[' or first_char == '{'
+                                    remaining_end_indicies = reversed(list(range(index, len(cells))))
+                                    skip_to = 0
+                                    for each_remaining_end_index in remaining_end_indicies:
+                                        try:
+                                            cells_with_types.append(
+                                                json.loads(seperator.join(cells[index:each_remaining_end_index]))
+                                            )
+                                            skip_to = each_remaining_index
+                                            break
+                                        except Exception as error:
+                                            pass
+                                    # continue the outer loop
+                                    if skip_to != 0:
+                                        continue
+                                    else:
+                                        # if all fail, go with the default of the shortest cell as a string
+                                        cells_with_types.append(each_cell)
+                        
+                        # 
+                        # headers
+                        # 
+                        if is_first_data_row:
+                            is_first_data_row = False
+                            if first_row_is_headers:
+                                headers.append([ str(each) for each in cells_with_types ])
+                                continue
+                        
+                        rows.append(cells_with_types)
+                
+                # if headers
+                if first_row_is_headers or use_headers:
+                    RowItem = named_list(headers[0] or use_headers)
+                    # tranform each into a named list (backwards compatible with regular list)
+                    rows = [ RowItem(each_row) for each_row in rows ]
+                
+                return comments, headers, rows
+            
+            @staticmethod
+            def write(*, path, rows, headers=[], comments=[], seperator=",", comment_symbol=None, eol="\n"):
+                import json
+                if len(comments) > 0 and not isinstance(comment_symbol, str):
+                    raise Exception(f'''When writing to a CSV, Csv.write(path={path})\ncomments were given\nbut a comment_symbol was not given\nPlease add a comment_symbol="#" argument or something with a similar string''')
+                
+                def element_to_string(element):
+                    # strings are checked for seperators, if no seperators or whitespace, then unquoted
+                    if isinstance(element, str):
+                        if (
+                            seperator not in element and
+                            eol       not in element and
+                            '\n'      not in element and
+                            '\r'      not in element and (
+                                comment_symbol == None or 
+                                comment_symbol not in element
+                            )
+                        ):
+                            # no need for quoting
+                            return element
+                    # all other values are stored in json format
+                    return json.dumps(element)
+                        
+                
+                with open(path, 'w') as the_file:
+                    # 
+                    # comments
+                    # 
+                    the_file.write(
+                        eol.join([ f"{comment_symbol}{each}" for each in comments ])
+                    )
+                    if len(comments) > 0:
+                        the_file.write(eol)
+                    
+                    # 
+                    # headers
+                    # 
+                    if len(headers) > 0:
+                        the_file.write(
+                            seperator.join(tuple(
+                                element_to_string(str(each)) for each in headers 
+                            ))+eol
+                        )
+                    
+                    # 
+                    # rows
+                    # 
+                    for each_row in rows:
+                        row_string_escaped = tuple(
+                            element_to_string(each_cell)
+                                for each_cell in each_row 
+                        )
+                        line = seperator.join(row_string_escaped)+eol
+                        the_file.write(
+                            seperator.join(row_string_escaped)+eol
+                        )
+    
 
 # 
 # 
