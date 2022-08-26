@@ -29,6 +29,19 @@ if True:
 # data structures
 # 
 if True:
+    def singleton(a_class):
+        """
+        @singleton
+        SomeClass:
+            thing = 10
+            @property
+            def double_thing(self):
+                return self.thing * 2
+        
+        print(SomeClass.double_thing) # >>> 20
+        """
+        return a_class()
+    
     class Object: # just an empty object for assigning attributes of
         def __init__(self, **kwargs):
             for each_key, each_value in kwargs.items():
