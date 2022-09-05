@@ -684,11 +684,11 @@ if True:
         if hasattr(print, "indent"):
             if print.indent.size > 0:
                 indent = print.indent.string*print.indent.size
-                # dump to string
-                output_str = print(*args, **{ **kwargs, "to_string":True})
                 # starting indent depending on previous ending
                 if len(prev_end) > 0 and prev_end[-1] in ('\n', '\r'):
                     output_str += indent
+                # dump to string
+                output_str = print(*args, **{ **kwargs, "to_string":True})
                 # indent any contained newlines 
                 output_str = output_str.replace("\n", "\n"+indent)[0:-len(indent)]
                 # print it
