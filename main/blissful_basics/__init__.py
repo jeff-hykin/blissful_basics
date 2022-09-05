@@ -690,7 +690,7 @@ if True:
                 output_str = output_str.replace("\n", "\n"+indent)[0:-len(indent)]
                 # starting indent depending on previous ending
                 if len(prev_end) > 0 and prev_end[-1] in ('\n', '\r'):
-                    output_str += indent
+                    output_str = indent + output_str
                 # print it
                 return real_print(output_str, **{ "flush": print.flush.always, **kwargs, "end":""}) 
         
