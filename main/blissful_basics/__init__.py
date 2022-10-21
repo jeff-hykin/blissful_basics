@@ -1,6 +1,7 @@
 from .__dependencies__ import json_fix
 from .__dependencies__ import file_system_py as FS
-from .__dependencies__.super_map import LazyDict, Map
+from .__dependencies__ import super_map
+LazyDict, Map = super_map.LazyDict, super_map.Map
 
 from time import time as now
 from random import shuffle
@@ -810,7 +811,7 @@ if True:
     
     class Timer:
         prev = None
-        def __init__(self, name="", *, silence=False, *args, **kwargs):
+        def __init__(self, name="", *, silence=False, **kwargs):
             self.name = name
             self.silence = silence
         
