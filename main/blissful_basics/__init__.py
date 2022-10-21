@@ -144,6 +144,13 @@ if True:
 # generic (any value)
 # 
 if True:
+    def attributes(a_value):
+        if a_value == None:
+            return []
+        all_attachments = dir(a_value)
+        return [
+            each for each in all_attachments if not (each.startswith("__") and each.endswith("__")) and not callable(getattr(a_value, each))
+        ]
     def to_pure(an_object, recursion_help=None):
         # 
         # infinte recursion prevention
