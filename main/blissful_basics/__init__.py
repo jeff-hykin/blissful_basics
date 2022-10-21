@@ -1,5 +1,6 @@
 from .__dependencies__ import json_fix
 from .__dependencies__ import file_system_py as FS
+from .__dependencies__.super_map import LazyDict, Map
 
 from time import time as now
 from random import shuffle
@@ -55,42 +56,49 @@ if True:
                 for each_key, each_value in self.__dict__.items():
                     entries += "    "+str(each_key)+" = "+repr(each_value)+",\n"
                 return entries+")"
-
-    def named_list_class(*, names):
+    
+    def create_named_list_class(names):
         """
-            Example:
-                Position = named_list_class(names=['x','y','z'])
-                a = Position([1,2,3])
-                print(a.x)   # 1
-                a.x = 4
-                print(a[0])  # 4
-                a[0] = 9
-                print(a.x)   # 9
+        Example:
+            Position = create_named_list_class(['x','y','z'])
+            a = Position([1,2,3])
+            print(a.x)   # 1
+            a.x = 4
+            print(a[0])  # 4
+            a[0] = 9
+            print(a.x)   # 9
         """
+        
+        names_to_index = {}
+        if isinstance(names, dict):
+            names_to_index = names
+        if isinstance(names, (tuple, list)):
+            for index, each in enumerate(names):
+                names_to_index[each] = index
         
         class NamedList(list):
             def __getitem__(self, key):
-                if isinstance(key, int):
+                if isinstance(key, (int, slice)):
                     return super(NamedList, self).__getitem__(key)
                 # assume its a name
                 else:
                     try:
-                        index = names.index(key)
-                    except ValueError as error:
-                        raise Exception(f'''key={key} not in named list: {self}''')
+                        index = names_to_index[key]
+                    except:
+                        raise KeyError(f'''key={key} not in named list: {self}''')
                     if index >= len(self):
                         return None
                     return self[index]
             
             def __getattr__(self, key):
-                if key in names:
+                if key in names_to_index:
                     return self[key]
                 else:
                     super(NamedList, self).__getattr__(key)
             
             def __setattr__(self, key, value):
-                if key in names:
-                    index = names.index(key)
+                if key in names_to_index:
+                    index = names_to_index[key]
                     while index >= len(self):
                         super(NamedList, self).append(None)
                     super(NamedList, self).__setitem__(index, value)
@@ -102,43 +110,137 @@ if True:
                     super(NamedList, self).__setitem__(key, value)
                 # assume its a name
                 else:
-                    index = names.index(key)
+                    index = names_to_index[key]
                     while index >= len(self):
                         super(NamedList, self).append(None)
                     super(NamedList, self).__setitem__(index, value)
+                    
+            def keys(self):
+                return list(names_to_index.keys())
+            
+            def values(self):
+                return self
+            
+            def get(self, key, default):
+                try:
+                    return self[key]
+                except Exception as error:
+                    return default
+            
+            def items(self):
+                return zip(self.keys(), self.values())
+            
+            def update(self, other):
+                for each_key in names_to_index:
+                    if each_key in other:
+                        self[each_key] = other[each_key]
+                return self
             
             def __repr__(self):
                 import itertools
                 out_string = '['
                 named_values = 0
-                for each_value, each_name in zip(self, names):
-                    named_values += 1
-                    out_string += f' {each_name}={each_value},'
-                # has unnamed values
-                length = len(self)
-                if named_values < length:
-                    for index in itertools.count(named_values-1): # starting where we left off
-                        if index >= length:
-                            break
-                        value = self[index]
-                        out_string += f' {value},'
+                
+                reverse_lookup = {}
+                for each_name, each_index in names_to_index.items():
+                    reverse_lookup[each_index] = reverse_lookup.get(each_index, []) + [ each_name ]
+                    
+                for each_index, value in enumerate(self):
+                    name = "=".join(reverse_lookup.get(each_index, []))
+                    if name:
+                        name += '='
+                    out_string += f' {name}{value},'
                 
                 out_string += ' ]'
                 return out_string
                 
         return NamedList
-
 # 
 # string related
 # 
 if True:
-    def indent(string, by):
-        if isinstance(by, str):
-            indent_string = by
-        else:
-            indent_string = (" "*by)
+    def indent(string, by="    ", ignore_first=False):
+        indent_string = (" "*by) if isinstance(by, int) else by
+        string = string if isinstance(string, str) else stringify(string)
+        start = indent_string if not ignore_first else ""
+        return start + string.replace("\n", "\n"+indent_string)
+
+    def remove_largest_common_prefix(list_of_strings):
+        def all_equal(a_list):
+            if len(a_list) == 0:
+                return True
             
-        return indent_string + f"{string}".replace("\n", "\n"+indent_string)
+            prev = a_list[0]
+            for each in a_list:
+                if prev != each:
+                    return False
+                prev = each
+            
+            return True
+        
+        shortest_path_length = min([ len(each_path) for each_path in list_of_strings ])
+        longest_common_path_length = shortest_path_length
+        while longest_common_path_length > 0:
+            # binary search would be more efficient but its fine
+            longest_common_path_length -= 1
+            if all_equal([ each[0:longest_common_path_length] for each_path in list_of_strings ]):
+                break
+        
+        return [ each[longest_common_path_length:] for each_path in list_of_strings ]
+            
+    def pascal_case_with_spaces(string, valid_word_contents="1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"):
+        digits = "1234567890"
+        new_string = " "
+        # get pairwise elements
+        for each_character in string:
+            prev_character = new_string[-1]
+            prev_is_lowercase = prev_character.lower() == prev_character
+            each_is_uppercase = each_character.lower() != each_character
+            
+            # remove misc characters (handles snake case, kebab case, etc)
+            if each_character not in valid_word_contents:
+                new_string += " "
+            # start of word
+            elif prev_character not in valid_word_contents:
+                new_string += each_character.upper()
+            # start of number
+            elif prev_character not in digits and each_character in digits:
+                new_string += each_character
+            # end of number
+            elif prev_character in digits and each_character not in digits:
+                new_string += each_character.upper()
+            # camel case
+            elif prev_is_lowercase and each_is_uppercase:
+                new_string += " "+each_character.upper()
+            else:
+                new_string += each_character
+        
+        # flatten out all the whitespace
+        new_string = new_string.strip()
+        while "  " in new_string:
+            new_string = new_string.replace("  "," ")
+        
+        return new_string
+
+    def levenshtein_distance(s1, s2):
+        # https://stackoverflow.com/questions/2460177/edit-distance-in-python
+        if len(s1) > len(s2):
+            s1, s2 = s2, s1
+        
+        distances = range(len(s1) + 1)
+        for i2, c2 in enumerate(s2):
+            distances_ = [i2+1]
+            for i1, c1 in enumerate(s1):
+                if c1 == c2:
+                    distances_.append(distances[i1])
+                else:
+                    distances_.append(1 + min((distances[i1], distances[i1 + 1], distances_[-1])))
+            distances = distances_
+        return distances[-1]
+    
+    def levenshtein_distance_sort(*, word, other_words):
+        prioritized = sorted(other_words, key=lambda each_other: levenshtein_distance(word, each_other))
+        return prioritized
 
 # 
 # generic (any value)
@@ -151,6 +253,7 @@ if True:
         return [
             each for each in all_attachments if not (each.startswith("__") and each.endswith("__")) and not callable(getattr(a_value, each))
         ]
+    
     def to_pure(an_object, recursion_help=None):
         # 
         # infinte recursion prevention
@@ -411,6 +514,7 @@ if True:
                 That function will return False until it has been called `size` times
                 Then on the size-th time it returns True, and resets/repeats
         """
+        import time
         if seconds:
             def _countdown():
                     
@@ -552,7 +656,31 @@ if True:
             return_value = tuple(return_value)
         
         return function(return_value, is_key=is_key)
-    
+
+    def all_equal(a_list):
+        if len(a_list) == 0:
+            return True
+        
+        prev = a_list[0]
+        for each in a_list[1:]:
+            if prev != each:
+                return False
+            prev = each
+        
+        return True
+
+    def all_different(a_list):
+        if len(a_list) == 0:
+            return True
+        
+        prev = a_list[0]
+        for each in a_list[1:]:
+            if prev == each:
+                return False
+            prev = each
+        
+        return True
+
 # 
 # math related
 # 
@@ -658,12 +786,48 @@ if True:
 
 # 
 # time
-# 
-if True:
+#
+if True: 
+    import time
+    
     def unix_time():
-        return int(now()/1000)
-
-
+        return int(time.time()/1000)
+    
+    @singleton
+    class Time:
+        prev = time.time()
+        
+        @property
+        def unix(self):
+            return int(time.time()/1000)
+        
+        @property
+        def time_since_prev_call(self):
+            current = time.time()
+            output = current-prev
+            Time.prev = current
+            return output
+    
+    class Timer:
+        prev = None
+        def __init__(self, name="", *, silence=False, *args, **kwargs):
+            self.name = name
+            self.silence = silence
+        
+        def __enter__(self):
+            self.start_time = int(time.time()/1000)
+            return self
+        
+        def __exit__(self, _, error, traceback):
+            self.end_time = int(time.time()/1000)
+            self.duration = self.end_time - self.start_time
+            if not self.silence:
+                print(f"{self.name} took {self.duration}ms")
+            Timer.prev = self
+            if error is not None:
+                # error cleanup HERE
+                raise error
+    
 # 
 # print helpers
 # 
