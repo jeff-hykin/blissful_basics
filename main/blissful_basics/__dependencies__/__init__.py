@@ -31,18 +31,18 @@ def path_pieces(path):
     folders = []
     while 1:
         path, folder = os.path.split(path)
-        
+
         if folder != "":
             folders.append(folder)
         else:
             if path != "":
                 folders.append(path)
-            
+
             break
     folders.reverse()
     *folders, file = folders
     filename, file_extension = os.path.splitext(file)
-    return *folders, filename, file_extension
+    return [ *folders, filename, file_extension ]
 
 # 
 # find closest import path
