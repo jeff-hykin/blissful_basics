@@ -240,6 +240,7 @@ if True:
         return distances[-1]
     
     def levenshtein_distance_sort(*, word, other_words):
+        word = word.lower() # otherwise this totally screws up distance
         prioritized = sorted(other_words, key=lambda each_other: levenshtein_distance(word, each_other))
         return prioritized
 
