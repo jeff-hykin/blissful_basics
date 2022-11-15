@@ -703,8 +703,36 @@ if True:
         return reduce(operator.mul, iterable, 1)
 
     def max_index(iterable):
+        iterable = tuple(iterable)
+        if len(iterable) == 0:
+            return None
         max_value = max(iterable)
-        return to_pure(iterable).index(max_value)
+        from random import sample
+        options = tuple( each_index for each_index, each enumerate(iterable) if each == max_value )
+        return sample(options, 1)[0]
+    
+    def max_indices(iterable):
+        iterable = tuple(iterable)
+        if len(iterable) == 0:
+            return None
+        max_value = max(iterable)
+        return tuple( each_index for each_index, each enumerate(iterable) if each == max_value )
+    
+    def arg_max(*, args, values):
+        values = tuple(values)
+        if len(values) == 0:
+            return None
+        max_value = max(values)
+        from random import sample
+        options = tuple( arg for arg, value zip(args, values) if value == max_value )
+        return sample(options, 1)[0]
+    
+    def arg_maxs(*, args, values):
+        values = tuple(values)
+        if len(values) == 0:
+            return None
+        max_value = max(values)
+        return tuple( arg for arg, value zip(args, values) if value == max_value )
 
     def average(iterable):
         from statistics import mean
