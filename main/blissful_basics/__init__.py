@@ -727,7 +727,7 @@ if True:
             return None
         max_value = max(values)
         from random import sample
-        options = tuple( arg for arg, value zip(args, values) if value == max_value )
+        options = tuple( arg for arg, value in zip(args, values) if value == max_value )
         return sample(options, 1)[0]
     
     def arg_maxs(*, args, values):
@@ -735,7 +735,7 @@ if True:
         if len(values) == 0:
             return None
         max_value = max(values)
-        return tuple( arg for arg, value zip(args, values) if value == max_value )
+        return tuple( arg for arg, value in zip(args, values) if value == max_value )
 
     def average(iterable):
         from statistics import mean
