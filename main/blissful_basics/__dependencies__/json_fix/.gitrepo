@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/jeff-hykin/json_fix.git
 	branch = master
-	commit = 31a90caf3b6bda95169edbdee6352f6f41de558e
-	parent = 66542c655672abfbed857906a3e887feec13e45a
+	commit = 6f9de338fe1587fb37a57657990e23364c47c224
+	parent = eb7b11afdc1f677caefeb02a18f20c2f783cd94d
 	method = merge
 	cmdver = 0.4.1
