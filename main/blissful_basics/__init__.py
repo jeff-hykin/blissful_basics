@@ -1487,3 +1487,33 @@ class Console:
         background_code = f"\u001b[{background_number}m"
         reset_code = f"\u001b[0m"
         return foreground_code+background_code+str(string)+reset_code
+
+    class output_redirected_to:
+        def __init__(self, file=None, filepath=None):
+            import sys
+            
+            self.filepath = filepath
+            
+            if self.filepath:
+                FS.ensure_is_folder(self.filepath)
+                self.file = open(self.filepath, "w")
+            else:
+                self.file = file
+                
+            self.real_stdout = sys.stdout
+            self.real_stderr = sys.stderr
+            sys.stdout = self.file
+            sys.stderr = self.file
+        
+        def __enter__(self):
+            return self
+        
+        def __exit__(self, _, error, traceback):
+            if error is not None:
+                import traceback
+                traceback.print_exc()
+            
+            sys.stdout = self.real_stdout
+            sys.stderr = self.real_stderr
+            if self.filepath:
+                self.file.close()
