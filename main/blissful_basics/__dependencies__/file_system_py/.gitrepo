@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/jeff-hykin/file-system-py.git
 	branch = master
-	commit = 8061116e2e5c8d18133341d69d613ddd4000db68
+	commit = 593cc878fc33fd06e561e087f0dd7b25d929c9ee
 	parent = 46641f7dc01750783763c5bb3da3a79f9b8b5abd
 	method = merge
 	cmdver = 0.4.1
