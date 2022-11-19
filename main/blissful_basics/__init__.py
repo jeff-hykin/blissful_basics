@@ -159,6 +159,58 @@ if True:
                 return out_string
                 
         return NamedList
+
+# 
+# warnings
+# 
+if True:
+    import warnings
+    @singleton
+    class Warnings:
+        _original_filters = list(warnings.filters)
+        _original_showwarning = warnings.showwarning
+        def show_full_stack_trace(self):
+            # show full traceback of each warning
+            import traceback
+            import warnings
+            import sys
+            def warn_with_traceback(message, category, filename, lineno, file=None, line=None):
+                log = file if hasattr(file,'write') else sys.stderr
+                traceback.print_stack(file=log)
+                log.write(warnings.formatwarning(message, category, filename, lineno, line))
+            warnings.showwarning = warn_with_traceback
+            warnings.simplefilter("always")
+        
+        def show_normal(self):
+            warnings.filters = self._original_filters
+            warnings.showwarning = self._original_showwarning
+        
+        def disable(self):
+            warnings.simplefilter("ignore")
+            warnings.filterwarnings('ignore')
+        
+        class disabled:
+            # TODO: in future allow specify which warnings to disable
+            def __init__(with_obj, *args, **kwargs):
+                pass
+            
+            def __enter__(with_obj):
+                with_obj._original_filters = list(warnings.filters)
+                with_obj._original_showwarning = warnings.showwarning
+            
+            def __exit__(with_obj, _, error, traceback):
+                # normal cleanup HERE
+                warnings.filters = with_obj._original_filters
+                warnings.showwarning = with_obj._original_showwarning
+                
+                with_obj._original_filters = list(warnings.filters)
+                with_obj._original_showwarning = warnings.showwarning
+                
+                if error is not None:
+                    raise error
+    # show full stack trace by default instead of just saying "something wrong happened somewhere I guess"
+    Warnings.show_full_stack_trace()
+        
 # 
 # string related
 # 
@@ -1420,6 +1472,8 @@ class Console:
         # if outputing to a file, dont color anything
         if not sys.stdout.isatty():
             return string
+        
+        # TODO: detect windows/WSL and disable colors (because powershell and CMD are problematic)
         
         foreground_number = getattr(Console.foreground, foreground, None)
         background_number = getattr(Console.background, background, None)
