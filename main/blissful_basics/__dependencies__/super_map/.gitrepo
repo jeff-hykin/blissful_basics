@@ -6,7 +6,7 @@
 [subrepo]
 	remote = git@github.com:jeff-hykin/super_map.git
 	branch = master
-	commit = 43ede55bc69868e008ba4bb08ba9720a22b42a41
-	parent = 1d0cad8b37905ed6827a1cd46904e2562a4081f8
+	commit = 32f3b78d3c63be99de05433fffe52142a011a31a
+	parent = a45a31db69fe54c1fae3d636499d3ba93060ee13
 	method = merge
 	cmdver = 0.4.1
