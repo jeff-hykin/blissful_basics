@@ -1501,6 +1501,10 @@ class Console:
         background_code = f"\u001b[{background_number}m"
         reset_code = f"\u001b[0m"
         return foreground_code+background_code+str(string)+reset_code
+    
+    def clear(self,):
+        print(chr(27) + "[2J")      # erase everything
+        print(chr(27) + "[1;1f")    # reset cursor position
 
     class output_redirected_to:
         def __init__(self, file=None, filepath=None):
