@@ -1482,6 +1482,7 @@ class Console:
         bright_white   = 107
     
     def color(self, string, foreground="white", background="black"):
+        import sys
         # if outputing to a file, dont color anything
         if not sys.stdout.isatty():
             return string
