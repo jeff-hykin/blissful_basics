@@ -1505,7 +1505,32 @@ class Console:
     def clear(self,):
         print(chr(27) + "[2J")      # erase everything
         print(chr(27) + "[1;1f")    # reset cursor position
+    
+    def run(self, *args, timeout_sec=None):
+        """
+            Example:
+                stdout, stderr, exit_code = Console.run("echo", "hello", timeout_sec=30)
+        """
+        from subprocess import Popen, PIPE
+        from threading import Timer
+        
+        proc = Popen(list(args), stdout=PIPE, stderr=PIPE)
+        timer = None
+        if timeout_sec:
+            timer = Timer(timeout_sec, proc.kill)
+        try:
+            if timer:
+                timer.start()
+            stdout, stderr = proc.communicate()
+            stdout = stdout.decode('utf-8')[0:-1]
+            stderr = stderr.decode('utf-8')[0:-1]
+            return stdout, stderr, proc.returncode
+        finally:
+            if timer:
+                timer.cancel()
+        return None, None, None
 
+    
     class output_redirected_to:
         def __init__(self, file=None, filepath=None):
             import sys
