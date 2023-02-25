@@ -1296,7 +1296,7 @@ if True:
                                     cells_with_types.append(
                                         json.loads(seperator.join(cells[index:each_remaining_end_index]))
                                     )
-                                    skip_to = each_remaining_index
+                                    skip_to = each_remaining_end_index
                                     break
                                 except Exception as error:
                                     pass
