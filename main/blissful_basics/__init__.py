@@ -1283,10 +1283,10 @@ if True:
                         first_char = stripped[0]
                         if not (first_char == '"' or first_char == '[' or first_char == '{'):
                             # this converts scientific notation to floats, ints with whitespace to ints, null to None, etc
-                            try: cells_with_types.append(json.loads(each_cell))
+                            try: cells_with_types.append(json.loads(stripped))
                             # if its not valid JSON, just treat it as a string
                             except Exception as error:
-                                cells_with_types.append(each_cell)
+                                cells_with_types.append(stripped)
                         else: # if first_char == '"' or first_char == '[' or first_char == '{'
                             # this gets complicated because strings/objects/lists could contain an escaped seperator
                             remaining_end_indicies = reversed(list(range(index, len(cells))))
