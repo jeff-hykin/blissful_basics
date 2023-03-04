@@ -1350,10 +1350,13 @@ if True:
                 if isinstance(element, str):
                     if not (
                         contains_comment_symbol(element) or
+                        len(element.strip()) != len(element) or
                         seperator in element or
                         eol in element or
                         '\n' in element or
-                        '\r' in element
+                        '\r' in element or 
+                        element.startswith("{") or # because of JSON objects
+                        element.startswith("[")    # because of JSON objects
                     ):
                         # no need for quoting
                         return element
