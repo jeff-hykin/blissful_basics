@@ -939,16 +939,22 @@ if True:
             
         if hasattr(print, "indent"):
             if print.indent.size > 0:
+                import json
                 indent = print.indent.string*print.indent.size
                 # dump to string
                 output_str = print(*args, **{ **kwargs, "to_string":True})
+                end_value = kwargs.get("end", '\n')
+                if len(end_value) > 0:
+                    output_str = output_str[0:-len(end_value)]
                 # indent any contained newlines 
-                output_str = output_str.replace("\n", "\n"+indent)[0:-len(indent)]
+                if "\n" in output_str:
+                    output_str = output_str.replace("\n", "\n"+indent)
                 # starting indent depending on previous ending
                 if len(prev_end) > 0 and prev_end[-1] in ('\n', '\r'):
                     output_str = indent + output_str
+                
                 # print it
-                return real_print(output_str, **{ "flush": print.flush.always, **kwargs, "end":""}) 
+                return real_print(output_str, **{ "flush": print.flush.always, **kwargs, }) 
         
         return real_print(*args, **{ "flush": print.flush.always, **kwargs})
     print.prev_end = '\n'
