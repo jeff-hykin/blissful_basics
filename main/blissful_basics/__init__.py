@@ -98,7 +98,7 @@ if True:
                 if key in names_to_index:
                     return self[key]
                 else:
-                    super(NamedList, self).__getattr__(key)
+                    super(NamedList, self).__getattribute__(key)
             
             def __setattr__(self, key, value):
                 if key in names_to_index:
