@@ -920,6 +920,47 @@ if True:
             if error is not None:
                 # error cleanup HERE
                 raise error
+
+# 
+# colors
+# 
+if True:
+    class Colors:
+        """
+        Example:
+            theme = Colors(dict(red="#000",blue="#000",))
+            
+            # index that wraps-around
+            theme[0]      # returns red
+            theme[1]      # returns blue
+            theme[2]      # returns red
+            theme[109320] # returns a valid color (keeps wrapping-around)
+            
+            # names
+            theme.red     # returns the value for red
+            
+            # iteration
+            for each_color in theme:
+                 print(each_color) # outputs "#000"
+        """
+        def __init__(self, color_mapping):
+            self._color_mapping = color_mapping
+            for each_key, each_value in color_mapping.items():
+                if isinstance(each_key, str) and len(each_key) > 0 and each_key[0] != '_':
+                    setattr(self, each_key, each_value)
+        
+        def __getitem__(self, key):
+            if isinstance(key, int):
+                return wrap_around_get(key, list(self._color_mapping.values()))
+            elif isinstance(key, str):
+                return self._color_mapping.get(key, None)
+        
+        def __repr__(self):
+            return stringify(self._color_mapping)
+        
+        def __iter__(self):
+            for each in self._color_mapping.values():
+                yield each
     
 # 
 # print helpers
