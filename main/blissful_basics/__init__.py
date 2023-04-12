@@ -877,6 +877,47 @@ if True:
             results.append(sum(average_items)/len(average_items))
         return results
 
+    def points_to_function(x_values, y_values, method="linear"):
+        values = list(zip(x_values, y_values))
+        values.sort(reverse=False, key=lambda each: each[0])
+        def shift_towards(*, new_value, old_value, proportion):
+            if proportion == 1:
+                return new_value
+            if proportion == 0:
+                return old_value
+            
+            difference = new_value - old_value
+            amount = difference * proportion
+            return old_value+amount
+        
+        def new_function(x_input):
+            prev_x, prev_y = values[0]
+            if x_input <= prev_x: # x_input is outside of the bounds
+                return prev_y 
+            max_x, max_y = values[-]
+            if x_input >= max_x: # x_input is outside of the bounds
+                return max_y
+            
+            for each_x, each_y in values:
+                # they must not be equal, so skip
+                if each_x == prev_x:
+                    continue
+                
+                if each_x == x_input:
+                    return each_y
+                else each_x > x_input > prev_x:
+                    the_range = each_x - prev_x
+                    relative_amount = x_input - prev_x
+                    propotion = relative_amount/the_range
+                    return shift_towards(new_value=each_x, old_value=prev_x, propotion=propotion)
+                
+                prev_x = each_x
+                prev_y = each_y
+            
+            # if its a vertical line or only has one point, this line will run
+            return prev_y
+                    
+        return new_function
 # 
 # time
 #
