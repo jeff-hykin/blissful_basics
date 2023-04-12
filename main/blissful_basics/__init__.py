@@ -894,7 +894,7 @@ if True:
             prev_x, prev_y = values[0]
             if x_input <= prev_x: # x_input is outside of the bounds
                 return prev_y 
-            max_x, max_y = values[-]
+            max_x, max_y = values[-1]
             if x_input >= max_x: # x_input is outside of the bounds
                 return max_y
             
@@ -905,7 +905,7 @@ if True:
                 
                 if each_x == x_input:
                     return each_y
-                else each_x > x_input > prev_x:
+                elif each_x > x_input > prev_x:
                     the_range = each_x - prev_x
                     relative_amount = x_input - prev_x
                     propotion = relative_amount/the_range
