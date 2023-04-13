@@ -1,11 +1,14 @@
 # What is this?
 
-A patch to the built-in python `json` object that allows classes to specify how they should be serialized.
+A pip module that let you define a `__json__` method, that works like the `toJSON` from JavaScript.<br>
+(e.g. it magically gets called whenever someone does `json.dumps(your_object)`)
+
+From a technical perspective, this module is a safe, backwards-compatible, reversable patch to the built-in python `json` object that allows classes to specify how they should be serialized.
 
 # Why?
 
 Because sometimes external code uses something like
-```
+```python
 import json
 json.dumps(list_containing_your_object)
 ```
