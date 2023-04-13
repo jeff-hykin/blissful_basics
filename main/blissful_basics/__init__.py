@@ -877,7 +877,8 @@ if True:
             results.append(sum(average_items)/len(average_items))
         return results
 
-    def points_to_function(x_values, y_values, method="linear"):
+    def points_to_function(x_values, y_values):
+        # method="linear"
         values = list(zip(x_values, y_values))
         values.sort(reverse=False, key=lambda each: each[0])
         def shift_towards(*, new_value, old_value, proportion):
