@@ -9,6 +9,7 @@ author='Jeff Hykin'
 author_email='jeff.hykin@gmail.com'
 url='https://github.com/jeff-hykin/blissful_basics.git'
 license = "MIT"
+main_module_path = "main/blissful_basics"
 
 [tool.poetry.dependencies]
 python = ">=3.7,<3.12"
