@@ -1,18 +1,7 @@
-try:
-    from .__dependencies__ import json_fix
-    from .__dependencies__ import file_system_py as FS
-    from .__dependencies__ import super_map
-    from .__dependencies__ import super_hash
-# python 3.6 seems to not like from .__dependencies__
-except Exception as error:
-    import json_fix
-    import file_system_py as FS
-    import super_map
-    import super_hash
-
-hash_file = super_hash.hash_file
-super_hash = super_hash.super_hash
-LazyDict, Map = super_map.LazyDict, super_map.Map
+from .__dependencies__ import json_fix
+from .__dependencies__ import file_system_py as FS
+from .__dependencies__.super_map import LazyDict, Map
+from .__dependencies__.super_hash import super_hash, hash_file
 
 from time import time as now
 from random import shuffle
