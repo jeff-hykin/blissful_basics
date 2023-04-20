@@ -13,6 +13,21 @@ starting_globals = dict(globals())
 # 
 # helpers
 # 
+from hashlib import md5 
+
+def consistent_hash(value):
+    if isinstance(value, bytes):
+        return md5(value).hexdigest()
+    
+    if isinstance(value, str):
+        return md5(("@"+value).encode('utf-8')).hexdigest()
+    
+    if isinstance(value, (bool, int, float, type(None))):
+        return md5(str(value).encode('utf-8')).hexdigest()
+        
+    else:
+        return md5(pickle.dumps(value, protocol=4)).hexdigest()
+
 def make_absolute_path(to, coming_from=None):
     # if coming from cwd, its easy
     if coming_from is None:
@@ -136,6 +151,8 @@ for dependency_name, dependency_info in dependency_mapping.items():
     counter += 1
     if dependency_name.startswith("__"):
         raise Exception(f"""dependency names cannot start with "__", but this one does: {dependency_name}. This source of that name is in: {settings_path}""")
+    if not dependency_name.isidentifier():
+        raise Exception(f"""dependency names must be an identifier ("blah".isidentifier() in python), but this one is not: {dependency_name}. This source of that name is in: {settings_path}""")
     
     target_path = join(this_folder, dependency_info["path"])
     relative_target_path = make_relative_path(to=target_path, coming_from=best_import_zone_match)
@@ -291,5 +308,8 @@ def file(path, globals=None):
     
     return module
 
+__all__ = []
 for dependency_name, dependency_info in dependency_mapping.items():
-    exec(f"{dependency_name} = file(join(this_folder, {repr(dependency_name)}))")
+    # this will register it with python and convert it to a proper module with a unique path (important for pickling things)
+    exec(f"""from .{dependency_name} import __file__ as _""")
+    __all__.append(dependency_name)
