@@ -1649,3 +1649,39 @@ class Console:
             sys.stderr = self.real_stderr
             if self.filepath:
                 self.file.close()
+
+# 
+# threading
+# 
+if True:
+    def run_main_hooks_if_needed(name):
+        """
+        Summary:
+            call this function `run_main_hooks_if_needed(__name__)` at the bottom
+            of all files in a project to allow main hooks to be run from anywhere
+        """
+        if name == '__main__':
+            for each in globals().get("__main_callbacks__", []):
+                each()
+    
+    def run_in_main(function_being_wrapped):
+        """
+        Summary:
+            use this in a module to ensure that some section of code
+            gets run inside the main module. Requires the main module to call
+            `run_main_hooks_if_needed(__name__)`
+        Example:
+            @run_in_main
+            def _():
+                manager = Manager()
+                shared_thread_data = manager.dict()
+        """
+        global_vars = globals()
+        global_vars.setdefault("__main_callbacks__", [])
+        global_vars["__main_callbacks__"].append(function_being_wrapped)
+        def wrapper(*args, **kwargs):
+            modify_args_somehow
+            output = function_being_wrapped(*args, **kwargs)
+            modify_output_somehow
+            return output
+        return wrapper
