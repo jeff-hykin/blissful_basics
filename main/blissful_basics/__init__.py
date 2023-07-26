@@ -156,6 +156,39 @@ if True:
                 return out_string
                 
         return NamedList
+    
+    class CappedBuffer(list):
+        """
+            Summary:
+                buffer that auto-clears when a cap is hit
+                and calls a callback when that cap is hit
+            
+            Example:
+                buffer = CappedBuffer(cap=3)
+                @buffer.when_overflowing
+                def do_stuff(buffer_data):
+                    print(buffer_data)
+                
+                buffer.append(1)
+                buffer.append(1)
+                buffer.append(1)
+                # prints [1,1,1] at this point
+                
+                print(len(buffer))
+                # prints 0
+        """
+        def __init__(self, cap):
+            self.cap = cap
+            self._callback = lambda a: None
+        
+        def append(self, value):
+            super().append(value)
+            if len(self) >= self.threshold:
+                self._callback(self)
+                self.clear()
+        
+        def when_overflowing(self, function_being_wrapped):
+            self._callback = function_being_wrapped
 
 # 
 # warnings
