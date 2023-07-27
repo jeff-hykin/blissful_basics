@@ -788,19 +788,20 @@ if True:
                 assert [4, 11, 18, 24, 31] == list(linear_steps(start=4, end=31, quantity=5))
         """
         import math
-        assert quantity > 0
-        quantity = math.ceil(quantity)
-        if round(start) == round(end):
-            for each in range(quantity):
-                yield start
-        else:
-            x0 = 1
-            x1 = quantity
-            y0 = start
-            y1 = end
-            generator = lambda x: y0 if (x1 - x0) == 0 else y0 + (y1 - y0) / (x1 - x0) * (x - x0)
-            for x in range(quantity):
-                yield round(generator(x+1))
+        assert quantity > -1
+        if quantity != 0:
+            quantity = math.ceil(quantity)
+            if round(start) == round(end):
+                for each in range(quantity):
+                    yield start
+            else:
+                x0 = 1
+                x1 = quantity
+                y0 = start
+                y1 = end
+                generator = lambda x: y0 if (x1 - x0) == 0 else y0 + (y1 - y0) / (x1 - x0) * (x - x0)
+                for x in range(quantity):
+                    yield round(generator(x+1))
 
     def product(iterable):
         from functools import reduce
