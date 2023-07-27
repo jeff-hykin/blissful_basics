@@ -781,7 +781,7 @@ if True:
 
     def integers(*, start, end_before, step=1):
         return list(range(start, end_before, step))
-
+    
     def linear_steps(*, start, end, quantity):
         """
             Example:
@@ -961,6 +961,19 @@ if True:
             return prev_y
                     
         return new_function
+# 
+# iterable related
+# 
+    def drop_end(quantity, iterable):
+        """
+            Example:
+                assert [1, 2] == list(drop_end(2, [1,2,3,4]))
+        """
+        buffer = []
+        for index, each in enumerate(iterable):
+            buffer.append(each)
+            if len(buffer) > quantity:
+                yield buffer.pop(0)
 # 
 # time
 #
