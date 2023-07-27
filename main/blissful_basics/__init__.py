@@ -782,24 +782,24 @@ if True:
     def integers(*, start, end_before, step=1):
         return list(range(start, end_before, step))
 
-    def linear_steps(*, start_value, end_value, number_of_steps):
+    def linear_steps(*, start, end, quantity):
         """
-        Example:
-            assert [4, 11, 18, 24, 31] == list(linear_steps(start_value=4, end_value=31, number_of_steps=5))
+            Example:
+                assert [4, 11, 18, 24, 31] == list(linear_steps(start=4, end=31, quantity=5))
         """
         import math
-        assert number_of_steps > 0
-        number_of_steps = math.ceil(number_of_steps)
-        if round(start_value) == round(end_value):
-            for each in range(number_of_steps):
-                yield start_value
+        assert quantity > 0
+        quantity = math.ceil(quantity)
+        if round(start) == round(end):
+            for each in range(quantity):
+                yield start
         else:
             x0 = 1
-            x1 = number_of_steps
-            y0 = start_value
-            y1 = end_value
+            x1 = quantity
+            y0 = start
+            y1 = end
             generator = lambda x: y0 if (x1 - x0) == 0 else y0 + (y1 - y0) / (x1 - x0) * (x - x0)
-            for x in range(number_of_steps):
+            for x in range(quantity):
                 yield round(generator(x+1))
 
     def product(iterable):
