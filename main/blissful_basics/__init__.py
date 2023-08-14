@@ -782,6 +782,13 @@ if True:
     def integers(*, start, end_before, step=1):
         return list(range(start, end_before, step))
     
+    def clip(value, *, min, max):
+        if value > max:
+            return max
+        elif value < min:
+            return min
+        return value
+    
     def linear_steps(*, start, end, quantity):
         """
             Example:
