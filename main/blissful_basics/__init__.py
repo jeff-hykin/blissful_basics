@@ -162,6 +162,10 @@ if True:
             Summary:
                 buffer that auto-clears when a cap is hit
                 and calls a callback when that cap is hit
+                Note: the buffer will only auto-clear if 
+                the callback doesnt remove any items.
+                (E.g. the callback can do manual/partial
+                clearing, and the buffer respect it)
             
             Example:
                 buffer = CappedBuffer(cap=3)
@@ -185,7 +189,10 @@ if True:
             super().append(value)
             if len(self) >= self.threshold:
                 self._callback(self)
-                self.clear()
+                # if no items were removed (e.g. callback didn't clean up)
+                # then flush the buffer
+                if len(self) >= self.threshold
+                    self.clear()
         
         def when_overflowing(self, function_being_wrapped):
             self._callback = function_being_wrapped
