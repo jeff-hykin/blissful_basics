@@ -1,10 +1,26 @@
 from .__dependencies__ import json_fix
 from .__dependencies__ import file_system_py as FS
 from .__dependencies__.super_map import LazyDict, Map
-from .__dependencies__.super_hash import super_hash, hash_file
+from .__dependencies__.super_hash import super_hash, hash_file, consistent_hash
 
 from time import time as now
 from random import shuffle
+import os
+
+# 
+# python sucks and requires global variables for stuff like pickling, this is the best workaround for that
+# 
+_blissful_basics_collision_avoidance_namespace = None # expensive to init in a good way so only is init-ed on demand
+def blissful_basics_collision_avoidance_namespace():
+    global _blissful_basics_collision_avoidance_namespace
+    if _blissful_basics_collision_avoidance_namespace == None:
+        _blissful_basics_collision_avoidance_namespace = consistent_hash(FS.read(__file__))[0:8] # 8 chars is enough for as-likely-has-hardware-failing-from-cosmic-event
+        # Why not hash __name__?
+        # - because this value should be the same even if this file is imported from different __main__ files (e.g. relative path shouldnt matter)
+        # Why not use random id?
+        # 1. this value should be stable for serialization load/unload reasons
+        # 2. two different versions of blissful basics imported to the same project should have different hashes
+    return _blissful_basics_collision_avoidance_namespace
 
 # 
 # checkers
@@ -77,47 +93,53 @@ if True:
             for index, each in enumerate(names):
                 names_to_index[each] = index
         
-        class NamedList(list):
+        hash_id = blissful_basics_collision_avoidance_namespace()+consistent_hash(tuple(names))[0:8]
+        # this is done in an exec for python pickling reasons
+        exec(
+            f"""
+            \nclass NamedList{hash_id}(list):
+            
+            names_to_index = {repr(names_to_index)}
             def __getitem__(self, key):
                 if isinstance(key, (int, slice)):
-                    return super(NamedList, self).__getitem__(key)
+                    return super(NamedList{hash_id}, self).__getitem__(key)
                 # assume its a name
                 else:
                     try:
-                        index = names_to_index[key]
+                        index = NamedList{hash_id}.names_to_index[key]
                     except:
-                        raise KeyError(f'''key={key} not in named list: {self}''')
+                        raise KeyError(f'''key={{key}} not in named list: {{self}}''')
                     if index >= len(self):
                         return None
                     return self[index]
             
             def __getattr__(self, key):
-                if key in names_to_index:
+                if key in NamedList{hash_id}.names_to_index:
                     return self[key]
                 else:
-                    super(NamedList, self).__getattribute__(key)
+                    super(NamedList{hash_id}, self).__getattribute__(key)
             
             def __setattr__(self, key, value):
-                if key in names_to_index:
-                    index = names_to_index[key]
+                if key in NamedList{hash_id}.names_to_index:
+                    index = NamedList{hash_id}.names_to_index[key]
                     while index >= len(self):
-                        super(NamedList, self).append(None)
-                    super(NamedList, self).__setitem__(index, value)
+                        super(NamedList{hash_id}, self).append(None)
+                    super(NamedList{hash_id}, self).__setitem__(index, value)
                 else:
-                    super(NamedList, self).__setattr__(key, value)
+                    super(NamedList{hash_id}, self).__setattr__(key, value)
             
             def __setitem__(self, key, value):
                 if isinstance(key, int):
-                    super(NamedList, self).__setitem__(key, value)
+                    super(NamedList{hash_id}, self).__setitem__(key, value)
                 # assume its a name
                 else:
-                    index = names_to_index[key]
+                    index = NamedList{hash_id}.names_to_index[key]
                     while index >= len(self):
-                        super(NamedList, self).append(None)
-                    super(NamedList, self).__setitem__(index, value)
+                        super(NamedList{hash_id}, self).append(None)
+                    super(NamedList{hash_id}, self).__setitem__(index, value)
                     
             def keys(self):
-                return list(names_to_index.keys())
+                return list(NamedList{hash_id}.names_to_index.keys())
             
             def values(self):
                 return self
@@ -132,7 +154,7 @@ if True:
                 return zip(self.keys(), self.values())
             
             def update(self, other):
-                for each_key in names_to_index:
+                for each_key in NamedList{hash_id}.names_to_index:
                     if each_key in other:
                         self[each_key] = other[each_key]
                 return self
@@ -142,20 +164,24 @@ if True:
                 out_string = '['
                 named_values = 0
                 
-                reverse_lookup = {}
-                for each_name, each_index in names_to_index.items():
+                reverse_lookup = {{}}
+                for each_name, each_index in NamedList{hash_id}.names_to_index.items():
                     reverse_lookup[each_index] = reverse_lookup.get(each_index, []) + [ each_name ]
                     
                 for each_index, value in enumerate(self):
                     name = "=".join(reverse_lookup.get(each_index, []))
                     if name:
                         name += '='
-                    out_string += f' {name}{value},'
+                    out_string += f' {{name}}{{value}},'
                 
                 out_string += ' ]'
                 return out_string
+            """,
+            globals(),
+            globals()
+        )
                 
-        return NamedList
+        return globals()[f"NamedList{hash_id}"]
     
     class CappedBuffer(list):
         """
