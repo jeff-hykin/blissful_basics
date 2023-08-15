@@ -5,6 +5,7 @@ from .__dependencies__.super_hash import super_hash, hash_file, consistent_hash
 
 from time import time as now
 from random import shuffle
+import numbers
 import os
 
 # 
@@ -182,6 +183,28 @@ if True:
         )
                 
         return globals()[f"NamedList{hash_id}"]
+    
+    from collections import deque
+    class CappedQue(deque):
+        def __init__(self, max_size):
+            self.max_size = max_size
+        
+        def push(self, value):    return self.append(value)
+        def add(self, value):     return self.append(value)
+        def append(self, value):
+            super().append(value)
+            if len(self) > self.max_size:
+                return self.pop()
+        def pop(self):
+            return self.popleft()
+        def __getitem__(self, index):
+            if isinstance(index, numbers.Number):
+                return super().__getitem__(int(index))
+            if isinstance(index, slice):
+                start = index.start
+                stop = index.stop if index.stop != None else len(self)
+                step = index.step if index.step != None else 1
+                return [ self[index] for index in range(start, stop, step) ]
     
     class CappedBuffer(list):
         """
