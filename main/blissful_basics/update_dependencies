@@ -21,9 +21,6 @@ if (pathInfo.isFolder) {
         if (each.path.startsWith(".git")) {
             continue
         }
-        if (each.isFolder) {
-            console.debug(`each.path is:`,each.path.split("/").length, each.path)
-        }
         if (each.isFolder && each.basename == "__dependencies__") {
             depsFolder = each.path
             break
@@ -35,7 +32,6 @@ const settingsJsonPath = `${FileSystem.parentPath(depsFolder)}/settings.json`
 const dependencies = JSON.parse(await FileSystem.read(settingsJsonPath))?.pure_python_packages ?? {}
 const globPath = `${depsFolder}/__sources__/*/.gitrepo`
 for (const eachPath of await glob(globPath, { searchOrder: 'breadthFirstSearch'})) {
-    console.debug(`eachPath is:`,eachPath)
     const folderToPull = FileSystem.parentPath(eachPath)
     console.log(`pulling: ${eachPath}`)
     const { success } = (await run`git subrepo pull --force ${folderToPull}`) 
