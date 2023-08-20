@@ -42,7 +42,9 @@ if True:
     import collections.abc
     def is_dict(thing):
         return isinstance(thing, collections.abc.Mapping)
-
+    
+    def is_number(thing):
+        return isinstance(thing, numbers.Number)
 
 # 
 # data structures
@@ -296,8 +298,53 @@ if True:
                     raise error
     # show full stack trace by default instead of just saying "something wrong happened somewhere I guess"
     Warnings.show_full_stack_trace()
-        
+
+#
+# errors
 # 
+    def traceback_to_string(traceback):
+        import traceback as traceback_module
+        from io import StringIO
+        string_stream = StringIO()
+        traceback_module.print_tb(the_traceback, limit=None, file=string_stream)
+        return string_stream.getvalue()
+        
+    class CatchAll:
+        """
+        Example:
+            with CatchAll():
+                # prints error but keeps going
+                raise Exception(f'''Howdy''')
+
+
+            with SuppressAll():
+                # prints nothing and keeps going
+                raise Exception(f'''Howdy''')
+            
+            with CatchAll(suppress_errors=True):
+                # prints error but keeps going
+                raise Exception(f'''Howdy''')
+            
+            print("code gets here")
+        """
+        
+        def __init__(self, *args, suppress_errors=False, **kwargs):
+            self.suppress_errors = suppress_errors
+        
+        def __enter__(self):
+            pass
+        
+        def __exit__(self, _, error, the_traceback):
+            if error is not None:
+                if not self.suppress_errors:
+                    print(
+                        f"CatchAll caught:\n    {repr(error)}\n"+indent(traceback_to_string(the_traceback), by="    ")
+                    )
+            return True
+    
+    SuppressAll = lambda *args, **kwargs: CatchAll(*args, suppress_errors=True, **kwargs)
+            
+#
 # string related
 # 
 if True:
@@ -1101,7 +1148,7 @@ if True:
             Timer.prev = self
             if error is not None:
                 # error cleanup HERE
-                raise error
+                return None
 
 # 
 # colors
@@ -1148,13 +1195,22 @@ if True:
 # print helpers
 # 
 if True:
+    real_print = print
+    def print_to_string(*args, **kwargs):
+        from io import StringIO
+        string_stream = StringIO()
+        # dump to string
+        real_print(*args, **{ "flush": True, **kwargs, "file":string_stream })
+        output_str = string_stream.getvalue()
+        string_stream.close()
+        return output_str
+        
     # 
     # print that can be indented or temporarily disabled
     # 
     
     # FIXME: if there are multiple blissful basics in play, we need to keep their indent count centralized
     #        basically print needs a setter/getter that modifies a global indent value
-    real_print = print
     def print(*args, to_string=False, disable=False, **kwargs): # print(value, ..., sep=' ', end='\n', file=sys.stdout, flush=False)
         prev_end = print.prev_end
         print.prev_end = kwargs.get('end', '\n') or ''
@@ -1202,7 +1258,7 @@ if True:
         
         def __exit__(self, _, error, traceback):
             if error is not None:
-                raise error
+                return None
     with_nothing = WithNothing()
 
     class _Indent(object):
@@ -1226,7 +1282,7 @@ if True:
             print.indent.size = self.indent_before.pop()
             if error is not None:
                 # error cleanup HERE
-                raise error
+                return None
         
         def function(self, function_being_wrapped):
             """
