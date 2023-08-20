@@ -8,18 +8,21 @@ import { recursivelyAllKeysOf, get, set, remove, merge, compareProperty } from "
 import ProgressBar from "https://deno.land/x/progress@v1.3.8/mod.ts"
 
 // go to project root
-let pathInfo = await FileSystem.info(FileSystem.thisFolder+"/__dependencies__")
-if (pathInfo.isFolder) {
-    FileSystem.cwd = FileSystem.thisFolder
-} else {
-    FileSystem.cwd = await FileSystem.walkUpUntil(".git/")
-}
+FileSystem.cwd = await FileSystem.walkUpUntil(".git/")
 
 let depsFolder
-for await (const each of FileSystem.recursivelyIterateItemsIn('.', { searchOrder: 'breadthFirstSearch'})) {
-    if (each.isFolder && each.basename == "__dependencies__") {
-        depsFolder = each.path
-        break
+let pathInfo = await FileSystem.info(FileSystem.thisFolder+"/__dependencies__")
+if (pathInfo.isFolder) {
+    depsFolder = pathInfo.path
+} else {
+    for await (const each of FileSystem.recursivelyIterateItemsIn('.', { searchOrder: 'breadthFirstSearch'})) {
+        if (each.path.startsWith(".git")) {
+            continue
+        }
+        if (each.isFolder && each.basename == "__dependencies__") {
+            depsFolder = each.path
+            break
+        }
     }
 }
 
