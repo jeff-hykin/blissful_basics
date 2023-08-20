@@ -8,7 +8,12 @@ import { recursivelyAllKeysOf, get, set, remove, merge, compareProperty } from "
 import ProgressBar from "https://deno.land/x/progress@v1.3.8/mod.ts"
 
 // go to project root
-FileSystem.cwd = await FileSystem.walkUpUntil(".git/")
+let pathInfo = await FileSystem.info(FileSystem.thisFolder+"/__dependencies__")
+if (pathInfo.isFolder) {
+    FileSystem.cwd = FileSystem.thisFolder
+} else {
+    FileSystem.cwd = await FileSystem.walkUpUntil(".git/")
+}
 
 let depsFolder
 for await (const each of FileSystem.recursivelyIterateItemsIn('.', { searchOrder: 'breadthFirstSearch'})) {
@@ -19,6 +24,7 @@ for await (const each of FileSystem.recursivelyIterateItemsIn('.', { searchOrder
 }
 
 const settingsJsonPath = `${FileSystem.parentPath(depsFolder)}/settings.json`
+console.debug(`settingsJsonPath is:`,settingsJsonPath)
 const dependencies = JSON.parse(await FileSystem.read(settingsJsonPath))?.pure_python_packages ?? {}
 for (const eachPath of await glob(`${depsFolder}/__sources__/*/.gitrepo`)) {
     const folderToPull = FileSystem.parentPath(eachPath)
