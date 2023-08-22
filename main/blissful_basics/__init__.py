@@ -1466,7 +1466,7 @@ if True:
         try:
             import pandas as pd
             json.fallback_table[lambda obj: isinstance(obj, pd.DataFrame)] = lambda obj: json.loads(obj.to_json())
-        except ImportError as error:
+        except:
             pass
         
         class Json:
