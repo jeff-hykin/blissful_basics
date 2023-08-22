@@ -1113,7 +1113,7 @@ if True:
     import time
     
     def unix_time():
-        return int(time.time()/1000)
+        return int(time.time()*1000)
     
     @singleton
     class Time:
@@ -1121,30 +1121,35 @@ if True:
         
         @property
         def unix(self):
-            return int(time.time()/1000)
+            return int(time.time()*1000)
         
         @property
         def time_since_prev_call(self):
             current = time.time()
-            output = current-prev
+            output = current-Time.prev
             Time.prev = current
             return output
     
     class Timer:
+        """
+        Example:
+            with Timer(name="thing"):
+                do_something()
+        """
         prev = None
         def __init__(self, name="", *, silence=False, **kwargs):
             self.name = name
             self.silence = silence
         
         def __enter__(self):
-            self.start_time = int(time.time()/1000)
+            self.start_time = time.time()
             return self
         
         def __exit__(self, _, error, traceback):
-            self.end_time = int(time.time()/1000)
+            self.end_time = time.time()
             self.duration = self.end_time - self.start_time
             if not self.silence:
-                print(f"{self.name} took {self.duration}ms")
+                print(f"{self.name} took {round(self.duration*1000)}ms")
             Timer.prev = self
             if error is not None:
                 # error cleanup HERE
