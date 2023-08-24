@@ -1470,7 +1470,7 @@ if True:
             last_slice = []
             for index in range(number_of_blocks):
                 new_bytes = seven_to_eight_bits(
-                    last_slice = bytes[index * seven:(index + 1) * seven]
+                    bytes[index * seven:(index + 1) * seven]
                 )
                 offset = -1
                 for byte in new_bytes:
