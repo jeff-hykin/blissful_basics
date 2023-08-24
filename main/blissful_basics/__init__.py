@@ -1418,9 +1418,124 @@ if True:
 # 
 if True:
     # 
+    # bits
+    # 
+    if True:
+        def get_bit(n, bit):
+            return (n >> bit) & 1
+
+        def set_bit(n, bit, value=1):
+            if value:
+                return n | (1 << bit)
+            else:
+                return ~(~n | (1 << bit))
+
+        seven = 7
+        eight = 8
+        def concat_bytes_arrays(arrays):
+            length = sum(len(arr) for arr in arrays)
+            result = bytearray(length)
+            offset = 0
+            for arr in arrays:
+                result[offset:offset+len(arr)] = arr
+                offset += len(arr)
+            return bytes(result)
+
+        def seven_to_eight_bits(seven_bytes):
+            new_bytes = bytearray(eight)
+            index = -1
+            for each in seven_bytes:
+                index += 1
+                new_bytes[index] = set_bit(each, eight - 1, 0)
+                if get_bit(each, eight - 1):
+                    new_bytes[eight - 1] = set_bit(new_bytes[eight - 1], index)
+            return bytes(new_bytes)
+
+        def eight_to_seven_bits(eight_bytes):
+            seven_bytes = eight_bytes[:seven]
+            final_byte = eight_bytes[seven]
+            new_bytes = bytearray(seven)
+            index = -1
+            for each in seven_bytes:
+                index += 1
+                new_bytes[index] = each
+                if get_bit(final_byte, index):
+                    new_bytes[index] = set_bit(new_bytes[index], seven)
+            return bytes(new_bytes)
+
+        def bytes_to_valid_string(bytes):
+            number_of_blocks = (len(bytes) + seven - 1) // seven
+            buffer_size = (number_of_blocks * eight) + 1
+            buffer = bytearray(buffer_size)
+            last_slice = []
+            for index in range(number_of_blocks):
+                new_bytes = seven_to_eight_bits(
+                    last_slice = bytes[index * seven:(index + 1) * seven]
+                )
+                offset = -1
+                for byte in new_bytes:
+                    offset += 1
+                    buffer[(index * eight) + offset] = byte
+            buffer[-1] = seven - len(last_slice)
+            return buffer.decode()
+
+        def valid_string_to_bytes(string):
+            char_count = len(string)
+            ascii_numbers = bytearray(char_count)
+            for i in range(char_count):
+                ascii_numbers[i] = ord(string[i])
+            
+            chunks_of_eight = ascii_numbers[:-1]
+            slice_end = -ascii_numbers[-1]
+            
+            eight = 8
+            number_of_blocks = (len(chunks_of_eight) + eight - 1) // eight
+            arrays = []
+            for index in range(number_of_blocks):
+                arrays.append(
+                    eight_to_seven_bits(
+                        chunks_of_eight[index * eight:(index + 1) * eight]
+                    )
+                )
+            
+            array = concat_bytes_arrays(arrays)
+            if slice_end == 0:
+                slice_end = len(array)
+            
+            return array[:slice_end]
+
+    # 
     # python pickle
     # 
     if True:
+        def to_pickle_bytes(variable):
+            """
+            ~4Gb max value
+            """
+            import pickle
+            bytes_out = pickle.dumps(variable, protocol=4)
+            max_bytes = 2**31 - 1
+            FS.clear_a_path_for(file_path, overwrite=True)
+            with open(file_path, 'wb') as f_out:
+                for idx in range(0, len(bytes_out), max_bytes):
+                    f_out.write(bytes_out[idx:idx+max_bytes])
+        
+        def large_pickle_load(file_path):
+            """
+            This is for loading really big python objects from pickle files
+            ~4Gb max value
+            """
+            import pickle
+            import os
+            max_bytes = 2**31 - 1
+            bytes_in = bytearray(0)
+            input_size = os.path.getsize(file_path)
+            with open(file_path, 'rb') as f_in:
+                for _ in range(0, input_size, max_bytes):
+                    bytes_in += f_in.read(max_bytes)
+            output = pickle.loads(bytes_in)
+            return output
+
         def large_pickle_load(file_path):
             """
             This is for loading really big python objects from pickle files
