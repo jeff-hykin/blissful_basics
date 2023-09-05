@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:jeff-hykin/json_fix.git
+	branch = master
+	commit = 4a3f954720b1df3ac6563baa03ea1b1440fe23fa
+	parent = 33821a790f32d7078597474f5d851e994df9b4aa
+	method = merge
+	cmdver = 0.4.1
