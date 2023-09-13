@@ -682,6 +682,76 @@ if True:
             return function_being_wrapped
         return decorator
 
+# 
+# function helpers
+# 
+if True:
+    def parameter_signature_string(func):
+        import inspect
+        return repr(inspect.signature(func))[11:-1]
+    
+    class ParameterInfo:
+        def __init__(self, *, is_args_spread, is_kwargs_spread, is_required, has_default, default, must_be_positional, must_be_keyword, can_be_positional_or_keyword, can_be_positional, can_be_keyword):
+            self.is_args_spread               = is_args_spread
+            self.is_kwargs_spread             = is_kwargs_spread
+            self.is_required                  = is_required
+            self.has_default                  = has_default
+            self.default                      = default
+            self.must_be_positional           = must_be_positional
+            self.must_be_keyword              = must_be_keyword
+            self.can_be_positional_or_keyword = can_be_positional_or_keyword
+            self.can_be_positional            = can_be_positional
+            self.can_be_keyword               = can_be_keyword
+        
+        def __json__(self):
+            return self.__dict__
+        
+        def __repr__(self):
+            entries = "ParameterInfo(\n"
+            for each_key, each_value in self.__dict__.items():
+                entries += "    "+str(each_key)+" = "+repr(each_value)+",\n"
+            return entries+")"
+    
+    def parameters_of(func):
+        import inspect
+        signature = inspect.signature(func)
+        empty_inspect_object = signature.empty
+        output = {}
+        for each_key, each_parameter in signature.parameters.items():
+            is_args_spread     = (each_parameter.kind == each_parameter.VAR_POSITIONAL)
+            is_kwargs_spread   = (each_parameter.kind == each_parameter.VAR_KEYWORD)
+            if is_args_spread or is_kwargs_spread:
+                has_default                  = False
+                is_required                  = False
+                default                      = None
+                can_be_positional_or_keyword = False
+                must_be_positional           = False
+                must_be_keyword              = False
+                can_be_positional            = False
+                can_be_keyword               = False
+            else:
+                has_default                  = (each_parameter.default != empty_inspect_object)
+                is_required                  = not has_default
+                default                      = (each_parameter.default if has_default else None)
+                can_be_positional_or_keyword = each_parameter.kind == each_parameter.POSITIONAL_OR_KEYWORD
+                must_be_positional           = each_parameter.kind == each_parameter.POSITIONAL_ONLY
+                must_be_keyword              = each_parameter.kind == each_parameter.KEYWORD_ONLY
+                can_be_positional            = can_be_positional_or_keyword or must_be_positional
+                can_be_keyword               = can_be_positional_or_keyword or must_be_keyword
+            
+            output[each_key] = ParameterInfo(
+                is_args_spread=is_args_spread,
+                is_kwargs_spread=is_kwargs_spread,
+                is_required=is_required,
+                has_default=has_default,
+                default=default,
+                must_be_positional=must_be_positional,
+                must_be_keyword=must_be_keyword,
+                can_be_positional_or_keyword=can_be_positional_or_keyword,
+                can_be_positional=can_be_positional,
+                can_be_keyword=can_be_keyword,
+            )
+        return output
 #
 # iterative helpers
 #
