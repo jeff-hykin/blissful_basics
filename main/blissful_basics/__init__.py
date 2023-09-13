@@ -11,17 +11,18 @@ import os
 # 
 # python sucks and requires global variables for stuff like pickling, this is the best workaround for that
 # 
-_blissful_basics_collision_avoidance_namespace = None # expensive to init in a good way so only is init-ed on demand
+class Settings:
+    serialization_id = None
+
 def blissful_basics_collision_avoidance_namespace():
-    global _blissful_basics_collision_avoidance_namespace
-    if _blissful_basics_collision_avoidance_namespace == None:
-        _blissful_basics_collision_avoidance_namespace = consistent_hash(FS.read(__file__))[0:8] # 8 chars is enough for as-likely-has-hardware-failing-from-cosmic-event
+    if Settings.serialization_id == None:
+        Settings.serialization_id = consistent_hash(FS.read(__file__))[0:8] # 8 chars is enough for as-likely-has-hardware-failing-from-cosmic-event
         # Why not hash __name__?
         # - because this value should be the same even if this file is imported from different __main__ files (e.g. relative path shouldnt matter)
         # Why not use random id?
         # 1. this value should be stable for serialization load/unload reasons
         # 2. two different versions of blissful basics imported to the same project should have different hashes
-    return _blissful_basics_collision_avoidance_namespace
+    return Settings.serialization_id
 
 # 
 # checkers
