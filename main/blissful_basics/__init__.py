@@ -695,7 +695,18 @@ if True:
                 yield from each
             else:
                 yield each
-
+    
+    def drop_end(quantity, iterable):
+        """
+            Example:
+                assert [1, 2] == list(drop_end(2, [1,2,3,4]))
+        """
+        buffer = []
+        for index, each in enumerate(iterable):
+            buffer.append(each)
+            if len(buffer) > quantity:
+                yield buffer.pop(0)
+    
     def flatten_once(items):
         return list(iteratively_flatten_once(items))
     
@@ -1094,19 +1105,6 @@ if True:
             return y
         
         return inner_function
-# 
-# iterable related
-# 
-    def drop_end(quantity, iterable):
-        """
-            Example:
-                assert [1, 2] == list(drop_end(2, [1,2,3,4]))
-        """
-        buffer = []
-        for index, each in enumerate(iterable):
-            buffer.append(each)
-            if len(buffer) > quantity:
-                yield buffer.pop(0)
 # 
 # time
 #
