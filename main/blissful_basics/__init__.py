@@ -69,6 +69,9 @@ if True:
             for each_key, each_value in kwargs.items():
                 setattr(self, each_key, each_value)
         
+        def __json__(self):
+            return self.__dict__
+        
         def __repr__(self):
             if len(self.__dict__) == 0:
                 return 'Object()'
@@ -752,6 +755,90 @@ if True:
                 can_be_keyword=can_be_keyword,
             )
         return output
+    
+    def check_args_compatibility(func, args, kwargs):
+        import inspect
+        if not isinstance(args, (tuple, list)):
+            args = tuple()
+        if not isinstance(kwargs, dict):
+            kwargs = {}
+        
+        remaining_positional_args_count = len(args)
+        parameters = parameters_of(func).items()
+        args_spread_exists = False
+        kwargs_spread_exists = False
+        actual_parameters = []
+        for name, parameter_info in parameters.items():
+            if parameter_info.is_args_spread:
+                args_spread_exists = True
+            elif parameter_info.is_kwargs_spread:
+                kwargs_spread_exists = True
+            else:
+                actual_parameters.append((name, parameter_info))
+        
+        given_positional_names = []
+        for index, (name, parameter_info) in enumerate(actual_parameters):
+            # given a positional arg
+            if remaining_positional_args_count > 0:
+                remaining_positional_args_count -= 1
+                given_positional_names.append(name)
+                if not parameter_info.can_be_positional:
+                    reason = f"Was given a positional arg at {index}, but that arg ({name}) isn't allowed to be positional"
+                    return False
+            break
+        
+        no_more_positional_args = remaining_positional_args_count == 0
+        remaining_parameters = tuple(parameters.items())[index+1:]
+        
+        for each in kwargs.keys():
+            if each in given_positional_names:
+                reason = f"can't provide name arg as both a positional and keyword value for same argument ({repr(each)})"
+                return False
+        
+        if no_more_positional_args:
+            if len(remaining_parameters) == 0:
+                if len(kwargs) == 0:
+                    return True
+                else:
+                    reason = f"given kwargs {kwargs}, but the function doesn't take them"
+                    return False
+            # if there are more parameters
+            else:
+                name, parameter_info = remaining_parameters[0]
+                # check if there are more required positional values
+                if parameter_info.must_be_positional:
+                    reason = f"Not given enough positional arguments"
+                    return False
+                # if there are more parameters, then fall through to the kwargs-checker case
+                else:
+                    pass
+        else:
+            if not args_spread_exists:
+                reason = "Too many positional arguments"
+                return False
+            # we consume all remaining positional args and effectively dump them into the splat
+            else:
+                pass
+        
+        # at this point all positional-only arguments should be satisfied and no extra/too-many positional args have been given
+        
+        parameters_that_are_not_positionally_provided = [ (name, parameter_info) for name, parameter_info in remaining_parameters if name not in given_positional_names ]
+        unused_kwargs = list(kwargs.keys())
+        for name, parameter_info in parameters_that_are_not_positionally_provided:
+            if name in kwargs:
+                unused_kwargs.remove(name)
+            elif parameter_info.is_required:
+                reason = f"Not given argument {repr(name)}, which is a required argument"
+                return False
+        
+        # at this point all required args (positional and named) have been given
+        if len(unused_kwargs) != 0 and not kwargs_spread_exists:
+            reason = f"There were given kwargs that were not part of the allowed kwargs for the function ({unused_kwargs})"
+            return False
+        
+        # didn't violate any rules
+        return True
+
 #
 # iterative helpers
 #
