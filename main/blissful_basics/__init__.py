@@ -2244,3 +2244,9 @@ if True:
             modify_output_somehow
             return output
         return wrapper
+
+import atexit
+
+@atexit.register
+def _():
+    dev_null.close()
