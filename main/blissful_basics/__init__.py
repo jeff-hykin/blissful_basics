@@ -441,6 +441,65 @@ if True:
 # generic (any value)
 # 
 if True:
+    dev_null = open(os.devnull, "w")
+    def explain(a_value):
+        import os
+        # import inspect
+        
+        # # https://stackoverflow.com/questions/28021472/get-relative-path-of-caller-in-python
+        # file_name = ""
+        # line_number = ""
+        # try:
+        #     stack_level = 1
+        #     frame = inspect.stack()[1+stack_level]
+        #     module = inspect.getmodule(frame[0])
+        #     # directory = os.path.dirname(module.__file__)
+        #     file_name = os.path.basename(module.__file__)
+        #     line_number = frame.lineno
+        # # if inside a repl (error =>) assume that the working directory is the path
+        # except (AttributeError, IndexError) as error:
+        #     pass
+        
+        # prefix = ""
+        # if file_name != "":
+        #     prefix = f"{file_name}:{line_number} "
+        
+        names = dir(a_value)
+        normal_attributes  = []
+        normal_methods     = []
+        magic_attributes   = []
+        magic_methods      = []
+        private_attributes = []
+        private_methods    = []
+        for each in names:
+            is_method = False
+            try:
+                with output_redirected_to(file=dev_null):
+                    is_method = callable(getattr(a_value, each, None))
+            except Exception as error:
+                print(error)
+            if not each.startswith("_"):
+                if not is_method:
+                    normal_attributes.append(each)
+                else:
+                    normal_methods.append(each)
+            elif each.startswith("__"):
+                if not is_method:
+                    magic_attributes.append(each)
+                else:
+                    magic_methods.append(each)
+            else:
+                if not is_method:
+                    private_attributes.append(each)
+                else:
+                    private_methods.append(each)
+        for each in normal_attributes: print(f"    {each}")
+        for each in normal_methods: print(f"    {each}()")
+        for each in magic_attributes: print(f"    {each}")
+        for each in magic_methods: print(f"    {each}()")
+        for each in private_attributes: print(f"    {each}")
+        for each in private_methods: print(f"    {each}()")
+    
     def attributes(a_value):
         if a_value == None:
             return []
@@ -1743,6 +1802,33 @@ if True:
     # csv
     # 
     class Csv:
+        @staticmethod
+        def detect_delimiter(path=None,*, string=None, line_view=10, possible_splitters=",\t|;~^.= -"):
+            def using_line_iterator(line_iterator):
+                splitter_is_in_line_views = {
+                    each: True
+                        for each in possible_splitters
+                }
+                for index, each_line in enumerate(line_iterator):
+                    if index > line_view:
+                        break
+                    for each_key, each_value in splitter_is_in_line_views.items():
+                        splitters[each_key] = splitters[each_key] and each_key in each_line
+                
+                for each_splitter_char, was_present in splitter_is_in_line_views.items():
+                    if was_present:
+                        return each_splitter_char
+                
+                return ","
+            
+            if path != None:
+                with open(path,'r') as f:
+                    return using_line_iterator(f)
+            if string != None:
+                return using_line_iterator(string.split("\n"))
+            
+            raise Exception(f'''When calling Csv.detect_delimiter, there either needs to be a path argument or a string argument, but I received neither''')
+            
         # reads .csv, .tsv, etc 
         @staticmethod
         def read(path=None, *, string=None, separator=",", first_row_is_column_names=False, column_names=None, skip_empty_lines=True, comment_symbol=None):
@@ -2101,7 +2187,7 @@ class Console:
             self.filepath = filepath
             
             if self.filepath:
-                FS.ensure_is_folder(self.filepath)
+                FS.ensure_is_folder(FS.dirname(self.filepath))
                 self.file = open(self.filepath, "w")
             else:
                 self.file = file
@@ -2123,7 +2209,6 @@ class Console:
             sys.stderr = self.real_stderr
             if self.filepath:
                 self.file.close()
-
 # 
 # threading
 # 
