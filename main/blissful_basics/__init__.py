@@ -474,7 +474,7 @@ if True:
         for each in names:
             is_method = False
             try:
-                with output_redirected_to(file=dev_null):
+                with Console.output_redirected_to(file=dev_null):
                     is_method = callable(getattr(a_value, each, None))
             except Exception as error:
                 print(error)
