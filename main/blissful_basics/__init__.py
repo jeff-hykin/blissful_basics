@@ -2194,13 +2194,15 @@ class Console:
                 
             self.real_stdout = sys.stdout
             self.real_stderr = sys.stderr
-            sys.stdout = self.file
-            sys.stderr = self.file
         
         def __enter__(self):
+            import sys
+            sys.stdout = self.file
+            sys.stderr = self.file
             return self
         
         def __exit__(self, _, error, traceback):
+            import sys
             if error is not None:
                 import traceback
                 traceback.print_exc()
