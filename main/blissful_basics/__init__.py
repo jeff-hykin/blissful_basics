@@ -988,6 +988,26 @@ if True:
         shuffle(new_list)
         return new_list
     
+    def combinations(elements, max_length=None, min_length=None):
+        if max_length is None and min_length is None:
+            min_length = 1
+            max_length = len(elements)
+        else:
+            max_length = max_length or len(elements)
+            min_length = min_length if min_length is not None else max_length
+        
+        if min_length != max_length:
+            for index in range(min_length, max_length + 1):
+                yield from combinations(elements, index, index)
+        else:
+            if max_length == 1:
+                for each in elements:
+                    yield [each]
+            else:
+                for index in range(len(elements)):
+                    for each in combinations(elements[index + 1:], max_length - 1, max_length - 1):
+                        yield [elements[i]] + each
+    
     import itertools
     def permutate(possibilities, digits=None):
         # TODO:
