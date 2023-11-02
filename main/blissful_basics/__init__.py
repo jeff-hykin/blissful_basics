@@ -1006,7 +1006,7 @@ if True:
             else:
                 for index in range(len(elements)):
                     for each in combinations(elements[index + 1:], max_length - 1, max_length - 1):
-                        yield [elements[i]] + each
+                        yield [elements[index]] + each
     
     import itertools
     def permutate(possibilities, digits=None):
