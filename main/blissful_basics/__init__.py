@@ -325,7 +325,6 @@ if True:
                 log.write(
                     main_message+traceback_string
                 )
-                import code; code.interact(local={**globals(),**locals()})
             warnings.showwarning = warn_with_traceback
             warnings.simplefilter("always")
     
