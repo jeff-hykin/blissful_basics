@@ -2150,7 +2150,7 @@ class Console:
         bright_cyan    = 106
         bright_white   = 107
     
-    def color(self, string, foreground="white", background="black"):
+    def color(self, string, foreground=None, background=None, bold=False, dim=False):
         import sys
         # if outputing to a file, dont color anything
         if not sys.stdout.isatty():
@@ -2158,18 +2158,28 @@ class Console:
         
         # TODO: detect windows/WSL and disable colors (because powershell and CMD are problematic)
         
-        foreground_number = getattr(Console.foreground, foreground, None)
-        background_number = getattr(Console.background, background, None)
+        if foreground:
+            foreground_number = getattr(Console.foreground, foreground, None)
+        if background:
+            background_number = getattr(Console.background, background, None)
         
-        if foreground_number == None:
+        if foreground and foreground_number == None:
             raise Exception(f"couldn't find foreground color {foreground}\nAvailable colors are: {attributes(Console.foreground)}")
-        if background_number == None:
+        if background and background_number == None:
             raise Exception(f"couldn't find background color {background}\nAvailable colors are: {attributes(Console.background)}")
         
-        foreground_code = f"\u001b[{foreground_number}m"
-        background_code = f"\u001b[{background_number}m"
+        code = ""
+        if foreground:
+            code = code + f"\u001b[{foreground_number}m"
+        if background:
+            code = code + f"\u001b[{background_number}m"
+        if bold:
+            code = code + f"\u001b[{1}m"
+        if dim:
+            code = code + f"\u001b[{2}m"
+            
         reset_code = f"\u001b[0m"
-        return foreground_code+background_code+str(string)+reset_code
+        return code+str(string)+reset_code
     
     def clear(self,):
         print(chr(27) + "[2J")      # erase everything
