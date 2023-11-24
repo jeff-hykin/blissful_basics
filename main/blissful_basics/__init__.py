@@ -257,6 +257,14 @@ if True:
 # 
 if True:
     import warnings
+    real_warn = warnings.warn
+    recent_stack_level = None
+    def warn(*args, **kwargs):
+        global recent_stack_level
+        recent_stack_level = kwargs.get("stacklevel", None)
+        return real_warn(*args, **kwargs)
+    warnings.warn = warn
+    
     @singleton
     class Warnings:
         _original_filters = list(warnings.filters)
@@ -264,43 +272,63 @@ if True:
         def show_full_stack_trace(self):
             # show full traceback of each warning
             import traceback
-            import warnings
             import sys
+            
             def warn_with_traceback(message, category, filename, lineno, file=None, line=None):
+                global recent_stack_level
                 log = file if hasattr(file,'write') else sys.stderr
-                import inspect
-                traceback.print_stack(f=inspect.stack()[2].frame,file=log)
-                log.write(warnings.formatwarning(message, category, filename, lineno, line))
+                level = 1
+                if recent_stack_level:
+                    level = max(recent_stack_level, level)
+                traceback_strings = []
+                while 1:
+                    try:
+                        level += 1
+                        traceback_strings.append(
+                            traceback_to_string(
+                                get_trace(level=level)
+                            )
+                        )
+                    except Exception as error:
+                        break
+                
+                traceback_string = indent("".join(traceback_strings))
+                lines = traceback_string.split("\n")
+                traceback_string = "\n".join(tuple(each for each in lines if not each.startswith('      File "<')))
+                main_message = warnings.formatwarning(message, category, filename, lineno, line)
+                if log == sys.stderr:
+                    main_message = Console.color(main_message, foreground="yellow")
+                    lines = traceback_string.split("\n")
+                    new_lines = []
+                    for each_line in lines:
+                        if not each_line.startswith('      File "'):
+                            new_lines.append(
+                                Console.color(each_line, foreground="cyan", dim=True)
+                            )
+                        else:
+                            end_index = None
+                            try:
+                                end_index = each_line.index('", line ')
+                            except Exception as error:
+                                pass
+                            if not end_index:
+                                new_lines.append(
+                                    each_line
+                                )
+                            else:
+                                file_path = each_line[len('      File "'):end_index]
+                                new_lines.append(
+                                    Console.color('      File "', dim=True)+Console.color(file_path, foreground="yellow", dim=True)+Console.color(each_line[end_index:], dim=True)
+                                )
+                    traceback_string = "\n".join(new_lines)
+                    
+                log.write(
+                    main_message+traceback_string
+                )
+                import code; code.interact(local={**globals(),**locals()})
             warnings.showwarning = warn_with_traceback
             warnings.simplefilter("always")
-        
-        def show_normal(self):
-            warnings.filters = self._original_filters
-            warnings.showwarning = self._original_showwarning
-        
-        def disable(self):
-            warnings.simplefilter("ignore")
-            warnings.filterwarnings('ignore')
-        
-        class disabled:
-            # TODO: in future allow specify which warnings to disable
-            def __init__(with_obj, *args, **kwargs):
-                pass
-            
-            def __enter__(with_obj):
-                with_obj._original_filters = list(warnings.filters)
-                with_obj._original_showwarning = warnings.showwarning
-            
-            def __exit__(with_obj, _, error, traceback):
-                # normal cleanup HERE
-                warnings.filters = with_obj._original_filters
-                warnings.showwarning = with_obj._original_showwarning
-                
-                with_obj._original_filters = list(warnings.filters)
-                with_obj._original_showwarning = warnings.showwarning
-                
-                if error is not None:
-                    raise error
+    
     # show full stack trace by default instead of just saying "something wrong happened somewhere I guess"
     Warnings.show_full_stack_trace()
 
