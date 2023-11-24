@@ -323,7 +323,7 @@ if True:
                     traceback_string = "\n".join(new_lines)
                     
                 log.write(
-                    main_message+traceback_string
+                    main_message+traceback_string+'\n'
                 )
             warnings.showwarning = warn_with_traceback
             warnings.simplefilter("always")
