@@ -318,8 +318,6 @@ class type(real_type):
     def __new__(cls, *args, **kwargs):
         normal_output = real_type(*args, **kwargs)
         return type_mappings.get(normal_output, normal_output)
-for each_key, each_value in real_type.__dict__.items():
-    type.__dict__[each_key] = each_value
 for each in dir(real_type):
     try:
         setattr(type, getattr(real_type, each))
@@ -355,7 +353,7 @@ class SemiLazyMap:
         data.update(kwargs)
         if isinstance(first_arg, dict):
             data.update(first_arg)
-        elif isinstance(first_arg, Map):
+        elif isinstance(first_arg, MapCls):
             data.update(first_arg[MapKeys.Dict])
         
     
