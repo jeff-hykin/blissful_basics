@@ -257,12 +257,12 @@ if True:
 # 
 if True:
     import warnings
-    real_warn = warnings.warn
+    real_warn_910932842088502 = warnings.warn
     recent_stack_level = None
     def warn(*args, **kwargs):
         global recent_stack_level
         recent_stack_level = kwargs.get("stacklevel", None)
-        return real_warn(*args, **kwargs)
+        return real_warn_910932842088502(*args, **kwargs)
     warnings.warn = warn
     
     @singleton
@@ -284,10 +284,13 @@ if True:
                 while 1:
                     try:
                         level += 1
+                        output = traceback_to_string(
+                            get_trace(level=level)
+                        )
+                        if "return real_warn_910932842088502(*args, **kwargs)" in output:
+                            continue
                         traceback_strings.append(
-                            traceback_to_string(
-                                get_trace(level=level)
-                            )
+                            output
                         )
                     except Exception as error:
                         break
