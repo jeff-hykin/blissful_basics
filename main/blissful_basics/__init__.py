@@ -330,7 +330,34 @@ if True:
                 )
             warnings.showwarning = warn_with_traceback
             warnings.simplefilter("always")
-    
+        
+        def show_normal(self):
+            warnings.filters = self._original_filters
+            warnings.showwarning = self._original_showwarning
+        
+        def disable(self):
+            warnings.simplefilter("ignore")
+            warnings.filterwarnings('ignore')
+        
+        class disabled:
+            # TODO: in future allow specify which warnings to disable
+            def __init__(with_obj, *args, **kwargs):
+                pass
+            
+            def __enter__(with_obj):
+                with_obj._original_filters = list(warnings.filters)
+                with_obj._original_showwarning = warnings.showwarning
+            
+            def __exit__(with_obj, _, error, traceback):
+                # normal cleanup HERE
+                warnings.filters = with_obj._original_filters
+                warnings.showwarning = with_obj._original_showwarning
+                
+                with_obj._original_filters = list(warnings.filters)
+                with_obj._original_showwarning = warnings.showwarning
+                
+                if error is not None:
+                    raise error
     # show full stack trace by default instead of just saying "something wrong happened somewhere I guess"
     Warnings.show_full_stack_trace()
 
@@ -1793,22 +1820,6 @@ if True:
                 for idx in range(0, len(bytes_out), max_bytes):
                     f_out.write(bytes_out[idx:idx+max_bytes])
         
-        def large_pickle_load(file_path):
-            """
-            This is for loading really big python objects from pickle files
-            ~4Gb max value
-            """
-            import pickle
-            import os
-            max_bytes = 2**31 - 1
-            bytes_in = bytearray(0)
-            input_size = os.path.getsize(file_path)
-            with open(file_path, 'rb') as f_in:
-                for _ in range(0, input_size, max_bytes):
-                    bytes_in += f_in.read(max_bytes)
-            output = pickle.loads(bytes_in)
-            return output
-
         def large_pickle_load(file_path):
             """
             This is for loading really big python objects from pickle files
