@@ -7,6 +7,7 @@ from time import time as now
 from random import shuffle
 import numbers
 import os
+import atexit
 
 # 
 # python sucks and requires global variables for stuff like pickling, this is the best workaround for that
@@ -2305,6 +2306,48 @@ class Console:
 # threading
 # 
 if True:
+    import threading
+    
+    # 
+    # thread helper
+    # 
+    _threads = []
+    @atexit.register
+    def _thread_exit_handler():
+        for index,each in enumerate(_threads):
+            if hasattr(each, 'stop'):
+                try:
+                    each.stop()
+                except Exception as error:
+                    pass
+        for index,each in enumerate(_threads):
+            each.join()
+
+    # killable threads
+    class Thread(threading.Thread):
+        threads = _threads
+        on_exit = _thread_exit_handler
+        def __init__(self, *args, **kwargs):
+            if len(kwargs)==0 and len(args)==1 and callable(args[0]):
+                threading.Thread.__init__(self, target=args[0])
+            else:
+                threading.Thread.__init__(self, *args, **kwargs)
+            self.name = getattr(kwargs.get("target", {}), '__name__', None)
+            _threads.append(self)
+        
+        def _bootstrap(self, stop_thread=False):
+            def stop():
+                nonlocal stop_thread
+                stop_thread = True
+            self.stop = stop
+
+            def tracer(*_):
+                if stop_thread:
+                    raise KeyboardInterrupt()
+                return tracer
+            sys.settrace(tracer)
+            super()._bootstrap()
+    
     def run_main_hooks_if_needed(name):
         """
         Summary:
@@ -2336,8 +2379,6 @@ if True:
             modify_output_somehow
             return output
         return wrapper
-
-import atexit
 
 @atexit.register
 def _():
