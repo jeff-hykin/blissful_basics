@@ -1217,7 +1217,7 @@ if True:
             return min
         return value
     
-    def linear_steps(*, start, end, quantity):
+    def linear_steps(*, start, end, quantity, transform=lambda x: x):
         """
             Example:
                 assert [4, 11, 18, 24, 31] == list(linear_steps(start=4, end=31, quantity=5))
@@ -1228,16 +1228,16 @@ if True:
             quantity = math.ceil(quantity)
             if start == end:
                 for each in range(quantity):
-                    yield start
+                    yield transform(start)
             else:
                 x0 = 1
                 x1 = quantity
                 y0 = start
                 y1 = end
-                generator = lambda x: y0 if (x1 - x0) == 0 else y0 + (y1 - y0) / (x1 - x0) * (x - x0)
+                interpolater = lambda x: y0 if (x1 - x0) == 0 else y0 + (y1 - y0) / (x1 - x0) * (x - x0)
                 for x in range(quantity-1):
-                    yield generator(x+1)
-                yield end
+                    yield transform(interpolater(x+1))
+                yield transform(end)
 
     def product(iterable):
         from functools import reduce
