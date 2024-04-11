@@ -1220,7 +1220,7 @@ if True:
     def linear_steps(*, start, end, quantity, transform=lambda x: x):
         """
             Example:
-                assert [4, 11, 18, 24, 31] == list(linear_steps(start=4, end=31, quantity=5))
+                assert [4, 11, 18, 24, 31] == list(linear_steps(start=4, end=31, quantity=5, transform=round))
         """
         import math
         assert quantity > -1
