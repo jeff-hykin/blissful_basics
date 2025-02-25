@@ -1388,21 +1388,19 @@ if True:
                 x_index = 0
             else:
                 # binary search for x
-                low = 0
-                high = number_of_values - 1
+                low_index = 0
+                high_index = number_of_values - 1 # number_of_values must be at least 2 by this point (so high will never equal low)
 
-                while low < high:
-                    mid = (low + high) // 2
+                while low_index+1 < high_index:
+                    mid_index = (low_index + high_index) // 2
 
-                    if x_values[mid] < x:
-                        low = mid + 1
+                    if x_values[mid_index] < x:
+                        low_index = mid_index
                     else:
-                        high = mid
+                        high_index = mid_index
 
-                if low > 0 and x < x_values[low - 1]:
-                    low -= 1
                 
-                x_index = low
+                x_index = low_index
             
             # Perform linear interpolation / extrapolation
             x0, x1 = x_values[x_index], x_values[x_index+1]
