@@ -633,6 +633,8 @@ if True:
         # base case 2 (exists because of scalar numpy/pytorch/tensorflow objects)
         elif hasattr(an_object, "tolist"):
             return_value = an_object.tolist()
+        elif hasattr(an_object, "numpy") and callable(an_object.numpy): 
+            return_value = an_object.numpy().tolist()
         else:
             # base case 3
             if not is_iterable(an_object):
@@ -1812,12 +1814,7 @@ if True:
             ~4Gb max value
             """
             import pickle
-            bytes_out = pickle.dumps(variable, protocol=4)
-            max_bytes = 2**31 - 1
-            FS.clear_a_path_for(file_path, overwrite=True)
-            with open(file_path, 'wb') as f_out:
-                for idx in range(0, len(bytes_out), max_bytes):
-                    f_out.write(bytes_out[idx:idx+max_bytes])
+            return pickle.dumps(variable, protocol=4)
         
         def large_pickle_load(file_path):
             """
